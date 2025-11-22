@@ -1,10 +1,11 @@
+# src/doc_service/utils.py
 import os
 import hashlib
 import re
 
 def load_text_files(folder_path: str):
     docs = []
-    for fname in os.listdir(folder_path):
+    for fname in sorted(os.listdir(folder_path)):
         if fname.endswith(".txt"):
             full_path = os.path.join(folder_path, fname)
             with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
@@ -18,9 +19,6 @@ def load_text_files(folder_path: str):
 
 
 def load_original_text(folder_path: str, filename: str):
-    """
-    Load the raw original .txt content for the gateway.
-    """
     path = os.path.join(folder_path, filename)
     with open(path, "r", encoding="utf-8", errors="ignore") as f:
         return f.read()
@@ -44,12 +42,12 @@ def preprocess_documents(folder_path: str):
     for doc in raw_docs:
         cleaned = clean_text(doc["text"])
         h = compute_hash(cleaned)
-
         result.append({
             "filename": doc["filename"],
             "clean_text": cleaned,
             "hash": h,
-            "length": len(cleaned.split())
+            "length": len(cleaned.split()),
+            "original_text": doc["text"]
         })
 
     return result
