@@ -55,45 +55,44 @@ def build_index():
 # Gateway: Search + Explanation
 # ------------------------------
 @app.post("/search")
-def search(req: SearchQuery):
+def search(req: SearchRequest):
 
-    # 1️⃣ Embed the query
-    embed_resp = requests.post(
-        f"{EMBED_SERVICE}/embed_document",
-        json={"filename": "query", "text": req.query, "hash": "query"}
-    ).json()
+    # 1) Load documents
+    docs = requests.post(f"{DOC_SERVICE}/load_docs", json={"folder": DATA_FOLDER}).json()["documents"]
 
-    query_emb = embed_resp["embedding"]
+    # 2) Embed docs
+    embed_resp = requests.post(f"{EMBED_SERVICE}/embed_all", json=docs).json()
+    embeddings = [x["embedding"] for x in embed_resp["results"]]
+    meta = {i: x["filename"] for i, x in enumerate(embed_resp["results"])}
 
-    # 2️⃣ Search FAISS index
-    search_resp = requests.post(
-        f"{SEARCH_SERVICE}/search_vectors",
-        json={"query_embedding": query_emb, "top_k": req.top_k}
-    ).json()
+    # 3) Build FAISS index
+    requests.post(f"{SEARCH_SERVICE}/build_index", json={"embeddings": embeddings, "meta": meta})
 
-    scores = search_resp["scores"][0]
-    ids = search_resp["indices"][0]
-    meta = search_resp["meta"]  # filename lookup
+    # 4) Embed query
+    q = requests.post(f"{EMBED_SERVICE}/embed_document",
+                      json={"filename": "query", "text": req.query, "hash": "0"}).json()
+    query_emb = q["embedding"]
 
-    # 3️⃣ For each result → fetch doc text + explanation
+    # 5) Vector search
+    search_out = requests.post(f"{SEARCH_SERVICE}/search_vectors",
+                               json={"query_embedding": query_emb, "top_k": req.top_k}).json()
+
+    # 6) Explain each result
     results = []
-    for score, idx in zip(scores, ids):
-        filename = list(meta.keys())[list(meta.values()).index(idx)]
+    for idx, score in zip(search_out["ids"], search_out["scores"]):
+        filename = search_out["meta"][str(idx)]
+        doc_text = requests.post(f"{DOC_SERVICE}/load_docs", json={"folder": DATA_FOLDER}).json()["documents"]
 
-        # pull original document text
-        doc_text_resp = requests.get(f"{DOC_SERVICE}/get_doc/{filename}").json()["text"]
+        doc_item = [d for d in doc_text if d["filename"] == filename][0]
 
-        # explanation
-        explain_resp = requests.post(
-            f"{EXPLAIN_SERVICE}/explain",
-            json={"query": req.query, "document_text": doc_text_resp}
-        ).json()
+        explanation = requests.post(f"{EXPLAIN_SERVICE}/explain",
+                                    json={"query": req.query, "document_text": doc_item["clean_text"]}).json()
 
         results.append({
             "filename": filename,
             "score": score,
-            "explanation": explain_resp,
-            "preview": doc_text_resp[:200] + "..."
+            "explanation": explanation,
+            "preview": doc_item["clean_text"][:400]
         })
 
     return {"results": results}
