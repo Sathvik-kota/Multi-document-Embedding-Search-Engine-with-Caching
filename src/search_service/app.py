@@ -1,7 +1,7 @@
 # app.py
 from fastapi import FastAPI
 from pydantic import BaseModel
-from indexer import FAISSIndexer
+from .indexer import FAISSIndexer
 import numpy as np
 
 app = FastAPI(title="Search Service")
