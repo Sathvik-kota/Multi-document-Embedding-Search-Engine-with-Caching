@@ -57,7 +57,7 @@ st.markdown("---")
 # SIDEBAR
 # ===========================================
 with st.sidebar:
-    st.header(⚙️ Settings")
+    st.header("⚙️ Settings")
     top_k = st.slider("Top-K Results", 1, 10, 5)
     st.markdown("### 🔗 API Gateway URL")
     url_input = st.text_input("API URL", API_GATEWAY_URL)
