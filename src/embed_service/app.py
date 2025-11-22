@@ -1,4 +1,3 @@
-# app.py
 from fastapi import FastAPI
 from pydantic import BaseModel
 from .embedder import Embedder
@@ -16,12 +15,6 @@ class EmbedRequest(BaseModel):
 
 @app.post("/embed_document")
 def embed_document(req: EmbedRequest):
-    """
-    Input: filename, clean_text, hash
-    Output: embedding (only generated if needed)
-    """
-
-    # If cached & unchanged → reuse
     if cache.exists(req.filename, req.hash):
         emb = cache.get_embedding(req.filename)
         return {
@@ -29,8 +22,6 @@ def embed_document(req: EmbedRequest):
             "cached": True,
             "embedding": emb.tolist()
         }
-
-    # Else → generate
     emb = embedder.embed_text(req.text)
     cache.add_embedding(req.filename, req.hash, emb)
 
@@ -42,17 +33,15 @@ def embed_document(req: EmbedRequest):
 
 
 class BatchEmbedRequest(BaseModel):
-    docs: list  # list of {filename, text, hash}
+    docs: list
 
 @app.post("/embed_batch")
 def embed_batch(req: BatchEmbedRequest):
-
     results = []
     new_texts = []
     new_files = []
     new_hashes = []
 
-    # Step 1: Separate cached vs new/changed
     for d in req.docs:
         if cache.exists(d["filename"], d["hash"]):
             results.append({
@@ -65,24 +54,32 @@ def embed_batch(req: BatchEmbedRequest):
             new_files.append(d["filename"])
             new_hashes.append(d["hash"])
 
-    # Step 2: Embed new items
     if len(new_texts) > 0:
         new_embs = embedder.embed_batch(new_texts)
-        for fname, h, emb in zip(new_files, new_hashes, new_embs):
-            cache.add_embedding(fname, h, emb)
+        for f, h, emb in zip(new_files, new_hashes, new_embs):
+            cache.add_embedding(f, h, emb)
             results.append({
-                "filename": fname,
+                "filename": f,
                 "cached": False,
                 "embedding": emb.tolist()
             })
 
     return {"count": len(results), "results": results}
 
+# ------------------------------
+# NEW ENDPOINT YOU NEED
+# ------------------------------
+@app.post("/embed_all")
+def embed_all():
+    """
+    Reads ALL document metadata + hashes from cache
+    Generates embeddings for all docs
+    """
+    all_docs = cache.get_all_docs()  # you already have this function
+    batch = {"docs": all_docs}
+    return embed_batch(BatchEmbedRequest(**batch))
 
 @app.get("/all_embeddings")
 def get_all():
     meta, embs = cache.all_embeddings()
-    return {
-        "meta": meta,
-        "shape": embs.shape
-    }
+    return {"meta": meta, "shape": embs.shape}
