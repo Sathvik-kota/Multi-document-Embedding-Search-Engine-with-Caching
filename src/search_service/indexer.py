@@ -1,5 +1,4 @@
-# search_service/indexer.py
-
+# src/search_service/indexer.py
 import numpy as np
 import faiss
 import os
@@ -12,50 +11,35 @@ class FAISSIndexer:
         self.index_path = "faiss_index.bin"
         self.meta_path = "faiss_meta.pkl"
 
-    # ----------------------------------------
-    # Load cache (embeddings + meta)
-    # ----------------------------------------
     def try_load(self):
         if not os.path.exists(self.meta_path) or not os.path.exists(self.index_path):
             return None, None
-
         with open(self.meta_path, "rb") as f:
             meta = pickle.load(f)
-
         index = faiss.read_index(self.index_path)
-
-        # Extract embeddings back from FAISS index
-        xb = faiss.vector_to_array(index.xb).reshape(-1, index.d)
-
         self.index = index
         self.meta = meta
+        return meta, None
 
-        return meta, xb
-
-    # ----------------------------------------
-    # Build FAISS index from embeddings
-    # ----------------------------------------
     def build(self, embeddings, meta):
+        # embeddings: numpy array (N, dim)
         dim = embeddings.shape[1]
-
         index = faiss.IndexFlatL2(dim)
         index.add(embeddings)
-
-        # Save index + metadata
         faiss.write_index(index, self.index_path)
-
+        # normalize meta keys to str(index)->filename
+        meta_map = {}
+        for k, v in meta.items():
+            meta_map[str(k)] = v
         with open(self.meta_path, "wb") as f:
-            pickle.dump(meta, f)
-
+            pickle.dump(meta_map, f)
         self.index = index
-        self.meta = meta
+        self.meta = meta_map
 
-    # ----------------------------------------
-    # Search
-    # ----------------------------------------
     def search(self, query_emb, top_k):
         if self.index is None:
             raise ValueError("FAISS index is not loaded!")
-
-        scores, ids = self.index.search(query_emb, top_k)
-        return scores, ids
+        q = query_emb.reshape(1, -1).astype("float32")
+        distances, ids = self.index.search(q, top_k)
+        # distances shape (1, k), ids shape (1, k)
+        return distances[0].tolist(), ids[0].tolist()
