@@ -1,141 +1,99 @@
-# app.py
-import requests
+# api_gateway/app.py
+
 from fastapi import FastAPI
 from pydantic import BaseModel
+import requests
 
 app = FastAPI(title="API Gateway")
 
-# -------------------------------
-# Microservice Endpoints (local)
-# -------------------------------
-DOC_SERVICE_URL = "http://localhost:9001"
-EMBED_SERVICE_URL = "http://localhost:9002"
-SEARCH_SERVICE_URL = "http://localhost:9003"
-EXPLAIN_SERVICE_URL = "http://localhost:9004"
+
+# ------------------------------
+# Service URLs
+# ------------------------------
+DOC_SERVICE = "http://localhost:9001"
+EMBED_SERVICE = "http://localhost:9002"
+SEARCH_SERVICE = "http://localhost:9003"
+EXPLAIN_SERVICE = "http://localhost:9004"
 
 
-# -------------------------------
-# Request models
-# -------------------------------
-class IndexRequest(BaseModel):
-    folder: str
-
-
-class SearchRequest(BaseModel):
+# ------------------------------
+# Search request model
+# ------------------------------
+class SearchQuery(BaseModel):
     query: str
     top_k: int = 5
 
 
-# ==============================================
-# 1) INDEXING PIPELINE
-# ==============================================
-@app.post("/index")
-def index_documents(req: IndexRequest):
-
-    # 1. Load docs from doc_service
-    doc_res = requests.post(
-        f"{DOC_SERVICE_URL}/load_docs",
-        json={"folder": req.folder}
-    ).json()
-
-    docs = doc_res["documents"]
-
-    # 2. Send to embed_service batch embed
-    embed_payload = {"docs": []}
-    for d in docs:
-        embed_payload["docs"].append({
-            "filename": d["filename"],
-            "text": d["clean_text"],
-            "hash": d["hash"]
-        })
-
-    embed_res = requests.post(
-        f"{EMBED_SERVICE_URL}/embed_batch",
-        json=embed_payload
-    ).json()
-
-    # 3. Prepare FAISS build request
-    meta_map = {}
-    embeddings = []
-
-    for item in embed_res["results"]:
-        fname = item["filename"]
-        meta_map[fname] = { "index": len(embeddings) }
-        embeddings.append(item["embedding"])
-
-    # 4. Build FAISS index via search_service
-    build_res = requests.post(
-        f"{SEARCH_SERVICE_URL}/build_index",
-        json={"embeddings": embeddings, "meta": meta_map}
-    ).json()
-
-    return {
-        "documents_indexed": len(embeddings),
-        "build_status": build_res
-    }
+# ------------------------------
+# Gateway: Load Documents
+# ------------------------------
+@app.post("/load_documents")
+def load_documents():
+    resp = requests.post(f"{DOC_SERVICE}/load_docs", json={"folder": "data/docs"})
+    return resp.json()
 
 
-# ==============================================
-# 2) SEARCH PIPELINE
-# ==============================================
+# ------------------------------
+# Gateway: Generate ALL Embeddings
+# ------------------------------
+@app.post("/generate_embeddings")
+def generate_embeddings():
+    resp = requests.post(f"{EMBED_SERVICE}/embed_all")
+    return resp.json()
+
+
+# ------------------------------
+# Gateway: Build FAISS index
+# ------------------------------
+@app.post("/build_index")
+def build_index():
+    resp = requests.post(f"{SEARCH_SERVICE}/build_index")
+    return resp.json()
+
+
+# ------------------------------
+# Gateway: Search + Explanation
+# ------------------------------
 @app.post("/search")
-def search(req: SearchRequest):
+def search(req: SearchQuery):
 
-    # 1. Embed query
-    q_res = requests.post(
-        f"{EMBED_SERVICE_URL}/embed_document",
-        json={
-            "filename": "query",
-            "text": req.query,
-            "hash": "query"
-        }
+    # 1️⃣ Embed the query
+    embed_resp = requests.post(
+        f"{EMBED_SERVICE}/embed_document",
+        json={"filename": "query", "text": req.query, "hash": "query"}
     ).json()
 
-    q_emb = q_res["embedding"]
+    query_emb = embed_resp["embedding"]
 
-    # 2. Vector search
-    search_res = requests.post(
-        f"{SEARCH_SERVICE_URL}/search_vectors",
-        json={"query_embedding": q_emb, "top_k": req.top_k}
+    # 2️⃣ Search FAISS index
+    search_resp = requests.post(
+        f"{SEARCH_SERVICE}/search_vectors",
+        json={"query_embedding": query_emb, "top_k": req.top_k}
     ).json()
 
-    scores = search_res["scores"]
-    ids = search_res["indices"]
-    meta = search_res["meta"]
+    scores = search_resp["scores"][0]
+    ids = search_resp["indices"][0]
+    meta = search_resp["meta"]  # filename lookup
 
-    # 3. Map doc_id → filename
-    filenames = list(meta.keys())
-    final_results = []
-
-    # 4. Retrieve text & get explanation for each doc
+    # 3️⃣ For each result → fetch doc text + explanation
+    results = []
     for score, idx in zip(scores, ids):
-        if idx == -1:
-            continue
+        filename = list(meta.keys())[list(meta.values()).index(idx)]
 
-        filename = filenames[idx]
+        # pull original document text
+        doc_text_resp = requests.get(f"{DOC_SERVICE}/get_doc/{filename}").json()["text"]
 
-        # Fetch original text from doc_service
-        # (We re-load the document to get preview + explanation)
-        doc_text = open(f"../../data/docs/{filename}", "r").read()
-
-        # Get explanation from explain_service
-        exp_res = requests.post(
-            f"{EXPLAIN_SERVICE_URL}/explain",
-            json={
-                "query": req.query,
-                "document_text": doc_text
-            }
+        # explanation
+        explain_resp = requests.post(
+            f"{EXPLAIN_SERVICE}/explain",
+            json={"query": req.query, "document_text": doc_text_resp}
         ).json()
 
-        final_results.append({
+        results.append({
             "filename": filename,
             "score": score,
-            "explanation": exp_res,
-            "preview": doc_text[:300]  # small snippet
+            "explanation": explain_resp,
+            "preview": doc_text_resp[:200] + "..."
         })
 
-    return {
-        "query": req.query,
-        "top_k": req.top_k,
-        "results": final_results
-    }
+    return {"results": results}
