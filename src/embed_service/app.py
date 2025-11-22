@@ -1,3 +1,4 @@
+# app.py
 from fastapi import FastAPI
 from pydantic import BaseModel
 from .embedder import Embedder
@@ -8,6 +9,9 @@ app = FastAPI(title="Embed Service")
 embedder = Embedder()
 cache = CacheManager()
 
+# -------------------------
+# Embed single document
+# -------------------------
 class EmbedRequest(BaseModel):
     filename: str
     text: str
@@ -17,30 +21,23 @@ class EmbedRequest(BaseModel):
 def embed_document(req: EmbedRequest):
     if cache.exists(req.filename, req.hash):
         emb = cache.get_embedding(req.filename)
-        return {
-            "filename": req.filename,
-            "cached": True,
-            "embedding": emb.tolist()
-        }
+        return {"filename": req.filename, "cached": True, "embedding": emb.tolist()}
+
     emb = embedder.embed_text(req.text)
     cache.add_embedding(req.filename, req.hash, emb)
 
-    return {
-        "filename": req.filename,
-        "cached": False,
-        "embedding": emb.tolist()
-    }
+    return {"filename": req.filename, "cached": False, "embedding": emb.tolist()}
 
-
+# -------------------------
+# Embed batch of documents
+# -------------------------
 class BatchEmbedRequest(BaseModel):
-    docs: list
+    docs: list  # list of dicts
 
 @app.post("/embed_batch")
 def embed_batch(req: BatchEmbedRequest):
     results = []
-    new_texts = []
-    new_files = []
-    new_hashes = []
+    new_texts, new_files, new_hashes = [], [], []
 
     for d in req.docs:
         if cache.exists(d["filename"], d["hash"]):
@@ -54,32 +51,37 @@ def embed_batch(req: BatchEmbedRequest):
             new_files.append(d["filename"])
             new_hashes.append(d["hash"])
 
-    if len(new_texts) > 0:
+    if new_texts:
         new_embs = embedder.embed_batch(new_texts)
-        for f, h, emb in zip(new_files, new_hashes, new_embs):
-            cache.add_embedding(f, h, emb)
+        for fname, h, emb in zip(new_files, new_hashes, new_embs):
+            cache.add_embedding(fname, h, emb)
             results.append({
-                "filename": f,
+                "filename": fname,
                 "cached": False,
                 "embedding": emb.tolist()
             })
 
     return {"count": len(results), "results": results}
 
-# ------------------------------
-# NEW ENDPOINT YOU NEED
-# ------------------------------
-@app.post("/embed_all")
-def embed_all():
-    """
-    Reads ALL document metadata + hashes from cache
-    Generates embeddings for all docs
-    """
-    all_docs = cache.get_all_docs()  # you already have this function
-    batch = {"docs": all_docs}
-    return embed_batch(BatchEmbedRequest(**batch))
-
+# -------------------------
+# Get all embeddings
+# -------------------------
 @app.get("/all_embeddings")
-def get_all():
+def get_all_embeddings():
     meta, embs = cache.all_embeddings()
-    return {"meta": meta, "shape": embs.shape}
+    return {"meta": meta, "embeddings": embs.tolist()}
+
+# -------------------------
+# NEW FIXED ENDPOINT
+# -------------------------
+@app.post("/embed_all")
+def embed_all_docs(docs: list):
+    """
+    API Gateway sends raw docs directly.
+    docs = [
+       {"filename": ..., "clean_text": ..., "hash": ...}
+    ]
+    """
+    batch = {"docs": [{"filename": d["filename"], "text": d["clean_text"], "hash": d["hash"]} for d in docs]}
+    result = embed_batch(BatchEmbedRequest(**batch))
+    return result
