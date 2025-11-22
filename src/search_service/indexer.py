@@ -1,72 +1,61 @@
-# indexer.py
-import os
-import faiss
+# search_service/indexer.py
+
 import numpy as np
-import json
-
-INDEX_DIR = "cache"
-INDEX_PATH = f"{INDEX_DIR}/faiss_index.bin"
-META_PATH = f"{INDEX_DIR}/faiss_meta.json"
-
+import faiss
+import os
+import pickle
 
 class FAISSIndexer:
-    def __init__(self, dim=384):
-        self.dim = dim
+    def __init__(self):
         self.index = None
-        os.makedirs(INDEX_DIR, exist_ok=True)
+        self.meta = None
+        self.index_path = "faiss_index.bin"
+        self.meta_path = "faiss_meta.pkl"
 
-    # Normalize vectors for cosine similarity
-    def _normalize(self, x):
-        norm = np.linalg.norm(x, axis=1, keepdims=True) + 1e-10
-        return x / norm
+    # ----------------------------------------
+    # Load cache (embeddings + meta)
+    # ----------------------------------------
+    def try_load(self):
+        if not os.path.exists(self.meta_path) or not os.path.exists(self.index_path):
+            return None, None
 
-    def build(self, embeddings: np.ndarray, meta: dict):
-        """Build FAISS index from embeddings."""
-        if embeddings.shape[0] == 0:
-            print("⚠️ No embeddings found — index is empty.")
-            return
+        with open(self.meta_path, "rb") as f:
+            meta = pickle.load(f)
 
-        emb_norm = self._normalize(embeddings)
-        index = faiss.IndexFlatIP(self.dim)
-        index.add(emb_norm)
+        index = faiss.read_index(self.index_path)
+
+        # Extract embeddings back from FAISS index
+        xb = faiss.vector_to_array(index.xb).reshape(-1, index.d)
 
         self.index = index
+        self.meta = meta
 
-        # Save meta (filename to index position)
-        with open(META_PATH, "w") as f:
-            json.dump(meta, f, indent=2)
+        return meta, xb
 
-        # Save FAISS index
-        faiss.write_index(index, INDEX_PATH)
+    # ----------------------------------------
+    # Build FAISS index from embeddings
+    # ----------------------------------------
+    def build(self, embeddings, meta):
+        dim = embeddings.shape[1]
 
-        print("✅ FAISS index built and saved.")
+        index = faiss.IndexFlatL2(dim)
+        index.add(embeddings)
 
-    def load(self):
-        """Load FAISS index + metadata."""
-        if os.path.exists(INDEX_PATH):
-            self.index = faiss.read_index(INDEX_PATH)
-            print("🔄 Loaded FAISS index.")
-        else:
-            print("⚠️ No saved index found.")
+        # Save index + metadata
+        faiss.write_index(index, self.index_path)
 
-        if os.path.exists(META_PATH):
-            with open(META_PATH, "r") as f:
-                meta = json.load(f)
-            print("🔄 Loaded FAISS metadata.")
-        else:
-            meta = {}
+        with open(self.meta_path, "wb") as f:
+            pickle.dump(meta, f)
 
-        return meta
+        self.index = index
+        self.meta = meta
 
-    def search(self, query_emb: np.ndarray, top_k: int):
-        """Search top-K similar documents."""
+    # ----------------------------------------
+    # Search
+    # ----------------------------------------
+    def search(self, query_emb, top_k):
         if self.index is None:
             raise ValueError("FAISS index is not loaded!")
 
-        # Normalize query
-        q = query_emb.reshape(1, -1)
-        q = q / (np.linalg.norm(q) + 1e-10)
-
-        scores, ids = self.index.search(q, top_k)
-
-        return scores[0], ids[0]
+        scores, ids = self.index.search(query_emb, top_k)
+        return scores, ids
