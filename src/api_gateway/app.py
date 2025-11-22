@@ -19,7 +19,7 @@ EXPLAIN_SERVICE = "http://localhost:9004"
 # ------------------------------
 # Search request model
 # ------------------------------
-class SearchQuery(BaseModel):
+class SearchRequest(BaseModel):
     query: str
     top_k: int = 5
 
