@@ -1,1 +1,0 @@
-Data is directly uploaded to deployment server as Git doesn't accept large amount of data.can use gitattributes but as of now  I directly pushed the data to hugging face server.
