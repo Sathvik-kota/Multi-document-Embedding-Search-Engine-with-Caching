@@ -287,7 +287,7 @@ if submit_btn and query.strip():
             sentences = explanation.get("top_sentences", [])
             
             st.caption(f"Semantic Overlap Ratio: {overlap_ratio:.3f}")
-
+            
             if sentences:
                 st.markdown("**Key Excerpts:**")
                 for s in sentences:
@@ -298,7 +298,10 @@ if submit_btn and query.strip():
                         <span style="color: #5e5e5e; font-size: 0.8em; margin-left: 10px;">(conf: {s['score']:.2f})</span>
                     </div>
                     """, unsafe_allow_html=True)
-
+            llm_expl = explanation.get("llm_explanation")
+            if llm_expl:
+                 st.markdown("**Why this document?**")
+                 st.write(llm_expl)
             st.markdown("---")
             st.markdown("**📄 Full Document Content:**")
             st.code(full_text, language="text") # Using code block for better readability of raw text
