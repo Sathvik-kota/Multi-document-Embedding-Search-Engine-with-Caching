@@ -4,7 +4,7 @@ import re
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from google import genai
-
+import os
 STOPWORDS = set("""
 a an the and or but if while with without for on in into by to from of is are was were be been being as it this that these those
 """.split())
