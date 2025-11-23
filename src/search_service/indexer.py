@@ -23,6 +23,8 @@ class FAISSIndexer:
 
     def build(self, embeddings, meta):
         # embeddings: numpy array (N, dim)
+        norms = np.linalg.norm(embeddings, axis=1, keepdims=True) + 1e-10
+        embeddings = embeddings / norms
         dim = embeddings.shape[1]
         index = faiss.IndexFlatL2(dim)
         index.add(embeddings)
@@ -39,7 +41,8 @@ class FAISSIndexer:
     def search(self, query_emb, top_k):
         if self.index is None:
             raise ValueError("FAISS index is not loaded!")
-        q = query_emb.reshape(1, -1).astype("float32")
+        q = query_emb / (np.linalg.norm(query_emb) + 1e-10)
+        q = q.reshape(1, -1)
         distances, ids = self.index.search(q, top_k)
         # distances shape (1, k), ids shape (1, k)
         return distances[0].tolist(), ids[0].tolist()
