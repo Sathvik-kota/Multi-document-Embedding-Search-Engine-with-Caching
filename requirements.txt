@@ -13,3 +13,4 @@ streamlit
 
 # Only really needed in Colab for exposing Streamlit, safe to keep
 pyngrok
+python-multipart
