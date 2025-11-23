@@ -48,6 +48,54 @@ Each logical component runs as a **separate FastAPI microservice**:
 | **streamlit_ui** | Gemini-styled user interface |
 
 This mirrors real production designs (scalable, modular, interchangeable components).
+User
+ │
+ │ 1. enters query
+ ▼
+Streamlit UI
+ │
+ │ 2. POST /search
+ ▼
+API Gateway
+ │
+ │ 3. Embed query text
+ ▼
+Embed Service
+ │ (cache hit? yes → return instantly)
+ │ (cache miss? → compute embedding)
+ ▼
+API Gateway
+ │
+ │ 4. Search FAISS index
+ ▼
+Search Service
+ │ returns top-k doc IDs
+ ▼
+API Gateway
+ │
+ │ 5. Fetch document content
+ ▼
+Doc Service
+ │ returns full + clean text
+ ▼
+API Gateway
+ │
+ │ 6. Generate explanation
+ ▼
+Explain Service
+ │ - keyword overlap  
+ │ - semantic top sentences  
+ │ - Gemini LLM explanation  
+ ▼
+API Gateway
+ │
+ │ 7. Return final response
+ ▼
+Streamlit
+ │
+ ▼
+User sees ranked cards + explanations
+
 
 ### 🔹 Explanations
 
@@ -195,4 +243,5 @@ L2 distance is used instead of cosine because:
    - keyword overlap, overlap ratio
    - top matching sentences
    - optional LLM explanation
+
 
