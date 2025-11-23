@@ -12,9 +12,20 @@ a an the and or but if while with without for on in into by to from of is are wa
 
 class Explainer:
     def __init__(self):
+        # Sentence transformer for similarity scoring
         self.model = SentenceTransformer("all-MiniLM-L6-v2")
-        # LLM Client
-        self.client = genai.Client(api_key="AIzaSyAUsBbYOc9v_ejKCYLlDDiNuwYh20gq01c")
+
+        # Load Gemini API key from environment
+        api_key = os.environ.get("GENAI_API_KEY")
+
+        # If key missing → disable LLM
+        if not api_key:
+            self.client = None
+        else:
+            try:
+                self.client = genai.Client(api_key=api_key)
+            except:
+                self.client = None
 
     # ---------------------------
     # TOKENIZER

@@ -27,8 +27,7 @@ from eval.evaluate import run_evaluation
 API_GATEWAY_URL = "http://localhost:8000"
 
 st.set_page_config(
-    page_title="Gemini Search",
-    page_icon="✨",
+    page_title="Doc-Fetch",
     layout="wide",
     initial_sidebar_state="expanded", # Changed from "collapsed" to "expanded"
 )
