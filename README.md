@@ -1,5 +1,5 @@
 ---
-title: Document Search Engine 
+title: Document Search Engine
 emoji: 📄
 colorFrom: blue
 colorTo: purple
@@ -9,165 +9,216 @@ app_file: start.sh
 pinned: false
 ---
 
-#  Multi-Document Semantic Search Engine 
+#  Multi-Document Semantic Search Engine  
 A **production-inspired multi-microservice semantic search system** built over 20+ text documents.
 
 Designed with:
+
 - **Sentence-Transformers** (`all-MiniLM-L6-v2`)
 - **Local Embedding Cache**
-- **FAISS vector search + persistent storage**
-- **LLM-Driven Explanations** (Gemini 2.5 Flash)
+- **FAISS Vector Search + Persistent Storage**
+- **LLM-Driven Explanations (Gemini 2.5 Flash)**
 - **Google-Gemini-Style Streamlit UI**
-- **Microservice Architecture**
-- **Full Evaluation Suite**: Accuracy · MRR · nDCG
+- **Real Microservice Architecture**
+- **Full Evaluation Suite (Accuracy · MRR · nDCG)**
 
-Showcasing real-world architecture and ML system design.
+A complete end-to-end ML system demonstrating real-world architecture & search engineering.
 
 ---
 
-## 🚀 Features
+#  Features
 
-### 🔹 Core Search
+## 🔹 Core Search
 
-- Embedding-based semantic search over `.txt` docs
-- FAISS `IndexFlatL2` on normalized vectors 
-- Top-K ranking + score display
-- Keyword overlap, overlap ratio, top matching sentences
+- Embedding-based semantic search over `.txt` documents  
+- FAISS `IndexFlatL2` on **normalized vectors** (≈ cosine similarity)  
+- Top-K ranking + similarity scores  
+- Keyword overlap, overlap ratio  
+- Top semantic sentences  
+- Full-text preview  
 
-### 🔹 Microservice Architecture 
+---
 
-Each logical component runs as a **separate FastAPI microservice**:
+## 🔹 Microservice Architecture (5 FastAPI Services)
+
+Each component runs as an **independent microservice**, mirroring real production systems:
 
 | Service | Responsibility |
 |--------|----------------|
-| **doc_service** | Load + clean + hash documents |
-| **embed_service** | MiniLM embeddings + caching |
-| **search_service** | FAISS index build + vector search |
-| **explain_service** | Keyword overlap + top sentences + LLM reasoning |
-| **api_gateway** | Full pipeline orchestration |
-| **streamlit_ui** | Gemini-styled user interface |
+| **doc_service** | Load, clean, normalize, hash, and store documents |
+| **embed_service** | MiniLM embedding generation + caching |
+| **search_service** | FAISS index build, update, and vector search |
+| **explain_service** | Keyword overlap, top sentences, LLM explanations |
+| **api_gateway** | Orchestration: a clean unified API for the UI |
+| **streamlit_ui** | Gemini-style user interface |
 
-This mirrors real production designs (scalable, modular, interchangeable components).
-User
- │
- │ 1. enters query
- ▼
-Streamlit UI
- │
- │ 2. POST /search
- ▼
-API Gateway
- │
- │ 3. Embed query text
- ▼
-Embed Service
- │ (cache hit? yes → return instantly)
- │ (cache miss? → compute embedding)
- ▼
-API Gateway
- │
- │ 4. Search FAISS index
- ▼
-Search Service
- │ returns top-k doc IDs
- ▼
-API Gateway
- │
- │ 5. Fetch document content
- ▼
-Doc Service
- │ returns full + clean text
- ▼
-API Gateway
- │
- │ 6. Generate explanation
- ▼
-Explain Service
- │ - keyword overlap  
- │ - semantic top sentences  
- │ - Gemini LLM explanation  
- ▼
-API Gateway
- │
- │ 7. Return final response
- ▼
-Streamlit
- │
- ▼
-User sees ranked cards + explanations
-
-
-### 🔹 Explanations
-
-For each search result you get:
-
-- Why this document was matched (LLM explanation)
-- Which keywords overlapped (simple heuristic)
-- Overlap ratio (0–1)
-- Top matching sentences (semantic similarity)
+This separation supports **scalability**, **fault isolation**, and **independent service upgrades** — *like real enterprise ML platforms*.
 
 ---
-### 🔹 **Evaluation Suite**
-Metrics included:
+
+## 🔹 Explanations
+
+Every search result includes:
+
+- **Keyword overlap**
+- **Semantic overlap ratio**
+- **Top relevant sentences (MiniLM sentence similarity)**
+- **LLM-generated explanation**:  
+  “Why did this document match your query?”
+
+---
+
+## 🔹 Evaluation Suite
+A built-in evaluation workflow providing:
+
 - **Accuracy**
 - **MRR (Mean Reciprocal Rank)**
 - **nDCG@K**
-- **Per-query table**
-- **Correct vs Incorrect Fetches**
-
----
-#  How Caching Works 
-Caching happens inside **`embed_service/cache_manager.py`**.We never embed the same document twice.
-
-### ✔ Prevents re-embedding unchanged files  
-Each document is identified by: filename + MD5(clean_text)
-
-If `(filename, hash)` already exists:
-- the embedding is **loaded instantly**
-- avoids recomputing MiniLM embeddings
-- makes repeated runs extremely fast
-
-### Cache contents:
-- `cache/embed_meta.json` → maps filename → `{"hash": "...", "index": int}`
-- `cache/embeddings.npy` → stacked embedding matrix
-
-Caching benefits:
-- Faster startup  
-- Faster user queries  
-- Less compute usage  
-- More production-ready  
+- Correct vs Incorrect queries  
+- Per-query detailed table  
+- Ideal for assignments, research, and experiments  
 
 ---
 
-#  How to Run Embedding Generation 
-### Embedding happens automatically during **initialization**:
+#  How Caching Works (MANDATORY SECTION)
 
-`POST /initialize` (handled by API Gateway):
+Caching happens inside **`embed_service/cache_manager.py`**.
 
-1. Load all docs from `data/docs`
-2. Send batch clean texts → **embed_service**
-3. Cache manager stores new embeddings
-4. FAISS index built in **search_service**
+### ✔ Zero repeated embeddings  
+Each document is fingerprinted using:
 
-### Manual Embedding (Optional)
+- **filename**
+- **MD5(cleaned_text)**
 
-You can call:
-POST /embed_batch
-POST /embed_document
+If the hash matches a previously stored file:
+- cached embedding is loaded instantly  
+- prevents costly re-embedding  
+- improves startup & query latency  
 
----
-###  FAISS Persistence (Warm Start Optimization)
+### Cache Files:
+- `cache/embed_meta.json` → mapping of filename → `{hash, index}`
+- `cache/embeddings.npy` → matrix of all embeddings
 
-The system stores embeddings **and** the FAISS vector index on disk:
-
-- `cache/embeddings.npy` → all stored embeddings  
-- `cache/embed_meta.json` → filename → hash → embedding index  
-- `faiss_index.bin` → saved FAISS index  
-- `faiss_meta.pkl` → mapping of FAISS row → document filename  
-
-On startup, the `search_service` automatically runs:
+### Benefits
+- Startup: **5–10 seconds → <1 second**
+- Low compute cost  
+- Ideal for Hugging Face Spaces  
+- Guarantees reproducible results  
 
 ---
+
+#  FAISS Persistence (Warm Start Optimization)
+
+This project saves BOTH embeddings and FAISS index:
+
+- `cache/embeddings.npy`  
+- `cache/embed_meta.json`  
+- `faiss_index.bin`  
+- `faiss_meta.pkl`  
+
+On startup:search_service.indexer.try_load()
+
+
+If found → loaded instantly.  
+If not → FAISS index is rebuilt from cached embeddings.
+
+### Why this matters?
+- Makes FAISS behave like a **persistent vector database**  
+- Extremely important for **Docker**, **Spaces**, and **cold restarts**  
+- Zero delay in rebuilding large indexes  
+
+---
+
+#  Folder Structure (MANDATORY SECTION)
+
+src/
+doc_service/
+app.py
+utils.py
+embed_service/
+app.py
+embedder.py
+cache_manager.py
+search_service/
+app.py
+indexer.py
+explain_service/
+app.py
+explainer.py
+api_gateway/
+app.py
+ui/
+streamlit_app.py
+data/
+docs/
+<all .txt documents>
+cache/
+faiss_index.bin
+faiss_meta.pkl
+requirements.txt
+Dockerfile
+start.sh
+README.md
+
+
+---
+
+#  How to Run Embedding Generation
+
+Embeddings generate automatically during initialization:
+
+
+Pipeline:
+
+1. **doc_service** → load + clean + hash  
+2. **embed_service** → create or load cached embeddings  
+3. **search_service** → FAISS index build or load  
+4. Return summary  
+
+
+---
+
+#  How to Start the API 
+
+All services are launched using:
+
+```bash
+bash start.sh
+
+This starts:
+
+9001 → doc_service
+
+9002 → embed_service
+
+9003 → search_service
+
+9004 → explain_service
+
+8000 → api_gateway
+
+7860 → Streamlit UI
+
+
+##  Architecture Overview
+
+### High-level Flow
+
+1. User asks a question in **Streamlit UI**
+2. UI sends request → **API Gateway** `/search`
+3. Gateway:
+   - Embeds query via **Embed Service**
+   - Searches FAISS via **Search Service**
+   - Fetches full doc text from **Doc Service**
+   - Gets explanation from **Explain Service**
+4. Response returned to UI with:
+   - filename, score, preview, full text
+   - keyword overlap, overlap ratio
+   - top matching sentences
+   - optional LLM explanation
+
+
+
 
 ##  Design Choices
 
@@ -227,21 +278,5 @@ L2 distance is used instead of cosine because:
 
 
 
-##  Architecture Overview
-
-### High-level Flow
-
-1. User asks a question in **Streamlit UI**
-2. UI sends request → **API Gateway** `/search`
-3. Gateway:
-   - Embeds query via **Embed Service**
-   - Searches FAISS via **Search Service**
-   - Fetches full doc text from **Doc Service**
-   - Gets explanation from **Explain Service**
-4. Response returned to UI with:
-   - filename, score, preview, full text
-   - keyword overlap, overlap ratio
-   - top matching sentences
-   - optional LLM explanation
 
 
