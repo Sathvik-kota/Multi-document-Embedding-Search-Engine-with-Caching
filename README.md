@@ -119,6 +119,57 @@ Everything starts with **one command**:
 bash start.sh
 
 
+## 🧬 Design Choices
+
+### 1️⃣ **Microservices instead of Monolithic**
+- Real-world ML systems separate **indexing, embedding, routing, and inference**.
+- Enables **independent scaling**, easier debugging, and service-level isolation.
+- Perfect architecture to demonstrate **system design skills** in interviews.
+
+---
+
+### 2️⃣ **MiniLM Embeddings**
+- ⚡ **Fast on CPU** (optimized for lightweight inference)
+- 🎯 **High semantic quality** for short & long text
+- 🪶 **Small model** → ideal for search engines, mobile, Spaces deployments
+
+---
+
+### 3️⃣ **FAISS L2 on Normalized Embeddings**
+L2 distance is used instead of cosine because:
+
+- 🚀 **FAISS FlatL2 is faster** and more optimized
+- ✨ When vectors are normalized:  
+  `L2 Distance ≡ Cosine Distance` (mathematically equivalent)
+- 🧩 Avoids the overhead of cosine kernels
+
+---
+
+### 4️⃣ **Local Embedding Cache**
+- Reduces startup time from **~5 seconds → <1 second**
+- Prevents **re-embedding identical documents**
+- Stores:
+  - `embed_meta.json` → filename → hash → index
+  - `embeddings.npy` → matrix of stored embeddings
+- Saves compute + makes repeated searches much faster
+
+---
+
+### 5️⃣ **LLM-Driven Explainability**
+- Generates **human-friendly reasoning**
+- Explains **why a document matched your query**
+- Combines:
+  - Top semantic-matching sentences  
+  - Keyword overlap  
+  - Gemini’s natural-language reasoning  
+
+---
+
+### 6️⃣ **Streamlit for Fast UI**
+- ⚡ Instant reload during development  
+- 🎨 Clean layout for Gemini-style cards  
+- 🧱 Easy to extend (evaluation panel, metrics, expanders)
+
 
 
 ## 🏗️ Architecture Overview
