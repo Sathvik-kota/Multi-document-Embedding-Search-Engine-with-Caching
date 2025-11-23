@@ -233,6 +233,9 @@ if submit_btn and query.strip():
             </div>
             <p class="card-preview">{safe_preview}...</p>
             <div style="margin-top: 10px;">
+                <div style="font-weight:600; color:#1f1f1f; margin-bottom:6px;">
+                     Keyword Overlap:
+                <div>
                 {keyword_html}
             </div>
         </div>
