@@ -6,77 +6,174 @@ import html
 API_GATEWAY_URL = "http://localhost:8000"
 
 st.set_page_config(
-    page_title="Multi-Document Search Engine",
-    page_icon="🔍",
+    page_title="Gemini Search",
+    page_icon="✨",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed", # Collapsed by default for that clean start page look
 )
 
 # =======================
-# STYLING
+# GEMINI UI STYLING
 # =======================
 st.markdown("""
 <style>
-.result-card {
-    padding: 1rem;
-    border-radius: 10px;
-    background-color: #1e1e1e;
-    margin-bottom: 1.2rem;
-    border: 1px solid #333333;
-}
-.score-badge {
-    background-color: #4CAF50;
-    padding: 4px 10px;
-    border-radius: 5px;
-    color: white;
-    font-size: 0.8rem;
-}
-.keyword {
-    background-color: #ffcc00;
-    color: black;
-    padding: 2px 4px;
-    border-radius: 4px;
-    margin-right: 3px;
-    font-weight: 600;
-}
+    /* Global Font & Background */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Input Field Styling - Gemini Style (Rounded & Clean) */
+    .stTextInput > div > div > input {
+        border-radius: 24px;
+        background-color: #1e1f20; /* Surface color */
+        border: 1px solid #444746;
+        color: #e3e3e3;
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+    .stTextInput > div > div > input:focus {
+        border-color: #a8c7fa;
+        box-shadow: 0 0 0 1px #a8c7fa;
+    }
+
+    /* Button Styling */
+    .stButton > button {
+        border-radius: 20px;
+        font-weight: 500;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    /* Primary Search Button */
+    button[kind="primary"] {
+        background: linear-gradient(90deg, #4b90ff, #ff5546);
+        color: white;
+    }
+    button[kind="primary"]:hover {
+        opacity: 0.9;
+        box-shadow: 0 4px 12px rgba(75, 144, 255, 0.3);
+    }
+
+    /* Result Card - Gemini Container Look */
+    .result-card {
+        background-color: #1e1f20;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #444746;
+        transition: transform 0.2s;
+    }
+    .result-card:hover {
+        border-color: #7cacf8;
+    }
+
+    /* Typography in Cards */
+    .card-title {
+        color: #e3e3e3;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .card-preview {
+        color: #c4c7c5;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+    }
+
+    /* Pills & Badges */
+    .score-badge {
+        background-color: #0f5223; /* Darker Green/Teal */
+        color: #c4eed0;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+    
+    .keyword-pill {
+        background-color: #004a77; /* Deep Blue */
+        color: #c2e7ff;
+        padding: 2px 10px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        margin-right: 6px;
+        display: inline-block;
+        margin-bottom: 4px;
+    }
+
+    /* Gradient Text for Header */
+    .gradient-text {
+        background: linear-gradient(to right, #4285f4, #9b72cb, #d96570);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
+        font-size: 3rem;
+    }
+    
+    /* Custom Info Box */
+    .stAlert {
+        background-color: #1e1f20;
+        border: 1px solid #444746;
+        color: #e3e3e3;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # =======================
-# HEADER
-# =======================
-st.title("🔍 Multi-Document Embedding Search Engine")
-st.subheader("Fast. Explainable. Semantic Search over Newsgroup Documents.")
-st.markdown("---")
-
-# =======================
-# SIDEBAR
+# SIDEBAR (Settings)
 # =======================
 with st.sidebar:
-    st.header("⚙️ Settings")
+    st.markdown("### ⚙️ Settings")
     top_k = st.slider("Top-K Results", 1, 10, 5)
-    url_input = st.text_input("API URL", API_GATEWAY_URL)
-    st.markdown("---")
-    st.caption("Developed using Sentence-Transformers + FAISS + Microservices")
+    url_input = st.text_input("API Endpoint", API_GATEWAY_URL)
+    st.divider()
+    st.caption("✨ Powered by Sentence-Transformers")
 
 API_GATEWAY_URL = url_input
 
 # =======================
-# SEARCH BAR
+# MAIN HEADER (Gemini Style)
 # =======================
-query = st.text_input(
-    "🔎 Enter your search query",
-    placeholder="e.g. What is quantum physics?"
-)
+col1, col2, col3 = st.columns([1, 6, 1])
+with col2:
+    # Use HTML for the gradient text title
+    st.markdown('<div style="text-align: center; margin-bottom: 10px;"><span class="gradient-text">Hello, Explorer</span></div>', unsafe_allow_html=True)
+    st.markdown('<div style="text-align: center; color: #8e918f; font-size: 1.2rem; margin-bottom: 30px;">How can I help you find documents today?</div>', unsafe_allow_html=True)
 
-submit_btn = st.button("Search", use_container_width=True)
+# =======================
+# SEARCH BAR CENTERED
+# =======================
+# Centering the search bar using columns
+sc1, sc2, sc3 = st.columns([1, 4, 1])
+
+with sc2:
+    query = st.text_input(
+        "Search Query", # Label hidden by CSS/Config if needed, or set visibility hidden
+        placeholder="Ask a question about your documents...",
+        label_visibility="collapsed"
+    )
+    
+    # Buttons row
+    b1, b2, b3 = st.columns([2, 1, 2])
+    with b2:
+        submit_btn = st.button("Sparkle Search", type="primary", use_container_width=True)
 
 # =======================
 # SEARCH HANDLER
 # =======================
 if submit_btn and query.strip():
 
-    with st.spinner("Embedding query and searching..."):
+    # Gemini-style spinner
+    with st.spinner("✨ Analyzing semantics..."):
 
         response = requests.post(
             f"{API_GATEWAY_URL}/search",
@@ -84,24 +181,25 @@ if submit_btn and query.strip():
         )
 
         if response.status_code != 200:
-            st.error("❌ API error:\n" + response.text)
+            st.error(f"❌ Connection Error: {response.text}")
             st.stop()
 
         try:
             data = response.json()
         except:
-            st.error("❌ Could not parse API response.")
+            st.error("❌ Invalid JSON response.")
             st.stop()
 
     if "results" not in data:
-        st.error("❌ API returned no results.")
+        st.info("No relevant documents found for that query.")
         st.stop()
 
-    st.markdown("## 🔥 Search Results")
+    # Results Header
+    st.markdown("### ✨ Search Results")
     st.markdown("---")
 
     # =======================
-    # DISPLAY RESULTS
+    # DISPLAY RESULTS (Card Style)
     # =======================
     for item in data["results"]:
         filename = item["filename"]
@@ -111,32 +209,51 @@ if submit_btn and query.strip():
         full_text = item["full_text"]
 
         safe_preview = html.escape(preview)
-
+        
+        # Prepare keyword HTML
         keywords = explanation.get("keyword_overlap", [])
-        overlap_ratio = explanation.get("overlap_ratio", 0)
-        sentences = explanation.get("top_sentences", [])
+        keyword_html = ""
+        if keywords:
+            keyword_html = "".join([f"<span class='keyword-pill'>{kw}</span>" for kw in keywords])
+        
+        # Doc Icon (SVG)
+        doc_icon = """<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a8c7fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>"""
 
+        # Main Card Render
         st.markdown(f"""
         <div class="result-card">
-            <h4>{filename}</h4>
-            <div class="score-badge">Similarity Score: {score:.4f}</div>
-            <p style='margin-top: 10px; color: #cccccc;'>{safe_preview}...</p>
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <div class="card-title">
+                    {doc_icon} {filename}
+                </div>
+                <div class="score-badge">match: {score:.4f}</div>
+            </div>
+            <p class="card-preview">{safe_preview}...</p>
+            <div style="margin-top: 10px;">
+                {keyword_html}
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
-        if keywords:
-            st.write("**🔑 Keyword Overlap:** ")
-            for kw in keywords:
-                st.markdown(f"<span class='keyword'>{kw}</span>", unsafe_allow_html=True)
+        # Details Expander (Standard Streamlit but styled via global CSS)
+        with st.expander(f"View Details & Full Text for {filename}"):
+            
+            overlap_ratio = explanation.get("overlap_ratio", 0)
+            sentences = explanation.get("top_sentences", [])
+            
+            st.caption(f"Semantic Overlap Ratio: {overlap_ratio:.3f}")
 
-        st.write(f"**Overlap Ratio:** `{overlap_ratio:.3f}`")
+            if sentences:
+                st.markdown("**Key Excerpts:**")
+                for s in sentences:
+                    # Using a subtle colored box for quotes
+                    st.markdown(f"""
+                    <div style="background: #25282a; border-left: 3px solid #7cacf8; padding: 10px; margin-bottom: 5px; border-radius: 0 8px 8px 0;">
+                        <span style="color: #e3e3e3;">"{s['sentence']}"</span> 
+                        <span style="color: #8e918f; font-size: 0.8em; margin-left: 10px;">(conf: {s['score']:.2f})</span>
+                    </div>
+                    """, unsafe_allow_html=True)
 
-        if sentences:
-            st.write("**💬 Top Matching Sentences:**")
-            for s in sentences:
-                st.info(f"{s['sentence']} (score: {s['score']:.4f})")
-
-        with st.expander("📄 Full Document"):
-            st.write(full_text)
-
-        st.markdown("---")
+            st.markdown("---")
+            st.markdown("**📄 Full Document Content:**")
+            st.code(full_text, language="text") # Using code block for better readability of raw text
