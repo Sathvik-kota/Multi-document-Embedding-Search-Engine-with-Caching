@@ -43,7 +43,7 @@ class Explainer:
 class Explainer:
     def __init__(self):
         self.model = SentenceTransformer("all-MiniLM-L6-v2")
-        self.client = genai.Client(api_key="YOUR_KEY")   # <--- NEW
+        self.client = genai.Client(api_key="AIzaSyBXEkZ7DF_QxuKwyxsXQ6FZ_qLk4k7W1n0")   # <--- NEW
 
     def llm_explain(self, query, doc_text, top_sentences):
         prompt = f"""
