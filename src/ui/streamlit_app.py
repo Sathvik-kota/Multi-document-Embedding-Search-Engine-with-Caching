@@ -9,7 +9,7 @@ st.set_page_config(
     page_title="Gemini Search",
     page_icon="✨",
     layout="wide",
-    initial_sidebar_state="collapsed", # Collapsed by default for that clean start page look
+    initial_sidebar_state="expanded", # Changed from "collapsed" to "expanded"
 )
 
 # =======================
@@ -26,19 +26,32 @@ st.markdown("""
         color: #1f1f1f; /* Dark text for contrast */
     }
 
-    /* Input Field Styling - Gemini Light Style */
-    .stTextInput > div > div > input {
-        border-radius: 24px;
-        background-color: #f0f4f9; /* Light ash input */
-        border: 1px solid transparent;
-        color: #1f1f1f;
-        padding: 12px 20px;
-        font-size: 16px;
+    /* --- INPUT FIELD FIX --- */
+    /* 1. Remove the default Streamlit border/background on the container */
+    .stTextInput > div[data-baseweb="input"] {
+        background-color: transparent !important;
+        border: none !important;
+        border-radius: 24px !important; 
+        box-shadow: none !important; 
     }
-    .stTextInput > div > div > input:focus {
-        background-color: #ffffff;
-        border-color: #0b57d0; /* Gemini Blue */
-        box-shadow: 0 0 0 1px #0b57d0;
+    
+    /* 2. Style the actual input element */
+    .stTextInput input {
+        border-radius: 24px !important;
+        background-color: #f0f4f9 !important; /* Light ash input */
+        border: 1px solid transparent !important;
+        color: #1f1f1f !important;
+        padding: 12px 20px !important;
+        font-size: 16px !important;
+        transition: all 0.2s ease;
+    }
+    
+    /* 3. Focus state - clean blue border, no default red overlay */
+    .stTextInput input:focus {
+        background-color: #ffffff !important;
+        border-color: #0b57d0 !important; /* Gemini Blue */
+        box-shadow: 0 0 0 2px rgba(11, 87, 208, 0.2) !important;
+        outline: none !important;
     }
 
     /* Button Styling */
@@ -233,9 +246,6 @@ if submit_btn and query.strip():
             </div>
             <p class="card-preview">{safe_preview}...</p>
             <div style="margin-top: 10px;">
-                <div style="font-weight:600; color:#1f1f1f; margin-bottom:6px;">
-                     Keyword Overlap:
-                <div>
                 {keyword_html}
             </div>
         </div>
