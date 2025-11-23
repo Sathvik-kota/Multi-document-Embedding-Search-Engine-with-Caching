@@ -281,30 +281,116 @@ if submit_btn and query.strip():
         """, unsafe_allow_html=True)
 
         # Details Expander (Standard Streamlit but styled via global CSS)
-        with st.expander(f"View Details & Full Text for {filename}"):
-            
-            overlap_ratio = explanation.get("overlap_ratio", 0)
-            sentences = explanation.get("top_sentences", [])
-            
-            st.caption(f"Semantic Overlap Ratio: {overlap_ratio:.3f}")
-            
-            if sentences:
-                st.markdown("**Key Excerpts:**")
-                for s in sentences:
-                    # Updated quote box for light mode
-                    st.markdown(f"""
-                    <div style="background: #ffffff; border-left: 3px solid #4285f4; padding: 10px; margin-bottom: 5px; border-radius: 0 8px 8px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                        <span style="color: #1f1f1f;">"{s['sentence']}"</span> 
-                        <span style="color: #5e5e5e; font-size: 0.8em; margin-left: 10px;">(conf: {s['score']:.2f})</span>
-                    </div>
-                    """, unsafe_allow_html=True)
-            llm_expl = explanation.get("llm_explanation")
-            if llm_expl:
-                 st.markdown("**Why this document?**")
-                 st.write(llm_expl)
-            st.markdown("---")
-            st.markdown("**📄 Full Document Content:**")
-            st.code(full_text, language="text") # Using code block for better readability of raw text
+# ===============================
+# GEMINI 2.0 STYLE DETAILS PANEL
+# ===============================
+with st.expander(f"🔍 Details • Top Matches • LLM Explanation • Full Text ({filename})"):
+
+    # --- OVERLAP PANEL ---
+    st.markdown("""
+    <div style="
+        padding:18px;
+        background:#f7faff;
+        border-radius:14px;
+        border-left: 4px solid #4b90ff;
+        margin-bottom:18px;
+        box-shadow:0 2px 6px rgba(0,0,0,0.05);
+    ">
+        <h4 style="margin:0; padding:0; color:#0b57d0;">Keyword Overlap</h4>
+        <p style="margin-top:6px; color:#333;">These are shared important terms between your query and the document.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    keyword_pills = "".join([f"<span class='keyword-pill'>{kw}</span>" for kw in explanation.get("keyword_overlap", [])])
+    st.markdown(keyword_pills, unsafe_allow_html=True)
+
+    st.write("")
+    st.caption(f"🔹 Overlap Ratio: **{explanation.get('overlap_ratio', 0):.3f}**")
+
+    st.markdown("---")
+
+    # --- TOP SENTENCE PANEL ---
+    st.markdown("""
+    <div style="
+        padding:18px;
+        background:#fff8f0;
+        border-radius:14px;
+        border-left: 4px solid #ff8a00;
+        margin-bottom:18px;
+        box-shadow:0 2px 6px rgba(0,0,0,0.05);
+    ">
+        <h4 style="margin:0; padding:0; color:#d96a00;">Most Relevant Sentences</h4>
+        <p style="margin-top:6px; color:#333;">These excerpts are the closest semantic matches to your query.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    sentences = explanation.get("top_sentences", [])
+    if sentences:
+        for s in sentences:
+            st.markdown(f"""
+            <div style="
+                background:#ffffff;
+                border-left:4px solid #ffa038;
+                padding:12px;
+                border-radius:6px;
+                margin-bottom:8px;
+                box-shadow:0 1px 3px rgba(0,0,0,0.05);
+            ">
+                <span style="color:#000;">"{s['sentence']}"</span>
+                <div style="color:#999; font-size:0.8em; margin-top:4px;">
+                    confidence: {s['score']:.2f}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # --- LLM EXPLAIN PANEL ---
+    if explanation.get("llm_explanation"):
+        st.markdown("""
+        <div style="
+            padding:18px;
+            background:#f0f4ff;
+            border-radius:14px;
+            border-left: 4px solid #9b72cb;
+            margin-bottom:18px;
+            box-shadow:0 2px 6px rgba(0,0,0,0.05);
+        ">
+            <h4 style="margin:0; padding:0; color:#6e4fbf;">LLM Explanation (Gemini)</h4>
+            <p style="margin-top:6px; color:#333;">A natural-language explanation of why this document was selected.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown(f"""
+        <div style="
+            background:white;
+            border-radius:12px;
+            padding:16px;
+            font-size:0.95rem;
+            line-height:1.5;
+            box-shadow:0 1px 3px rgba(0,0,0,0.05);
+        ">
+            {explanation['llm_explanation']}
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # --- FULL TEXT PANEL ---
+    st.markdown("""
+    <div style="
+        padding:18px;
+        background:#eef3ff;
+        border-radius:14px;
+        border-left: 4px solid #4285f4;
+        margin-bottom:12px;
+        box-shadow:0 2px 6px rgba(0,0,0,0.05);
+    ">
+        <h4 style="margin:0; padding:0; color:#1a4ccc;">Full Document Text</h4>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.code(full_text, language="text")
 if run_eval:
 
     st.info("Running evaluation... this may take 10–20 seconds...")
