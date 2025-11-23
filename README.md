@@ -130,6 +130,7 @@ If not → FAISS index is rebuilt from cached embeddings.
 ---
 
 #  Folder Structure 
+```
 ├── 📁 src
 │ ├── 📁 doc_service
 │ │ ├── init.py
@@ -179,7 +180,7 @@ If not → FAISS index is rebuilt from cached embeddings.
 ├── .gitignore
 └── README.md
 
-
+```
 ---
 
 #  How to Run Embedding Generation
