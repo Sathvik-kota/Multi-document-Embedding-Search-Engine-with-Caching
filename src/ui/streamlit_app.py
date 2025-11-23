@@ -4,6 +4,7 @@ import json
 import html
 import sys
 import os
+import importlib
 
 # ------------------------------------------
 # Add project root + eval folder to path
@@ -15,8 +16,13 @@ PROJECT_ROOT = os.path.dirname(SRC_DIR)
 sys.path.append(PROJECT_ROOT)
 sys.path.append(os.path.join(PROJECT_ROOT, "eval"))
 
-# Now import evaluation
-from evaluate import run_evaluation
+# ------------------------------------------
+# FORCE RELOAD evaluate module
+# ------------------------------------------
+import eval.evaluate as eval_module
+importlib.reload(eval_module)
+from eval.evaluate import run_evaluation
+
 
 API_GATEWAY_URL = "http://localhost:8000"
 
