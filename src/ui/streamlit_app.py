@@ -298,25 +298,80 @@ if submit_btn and query.strip():
             st.markdown("**📄 Full Document Content:**")
             st.code(full_text, language="text") # Using code block for better readability of raw text
 if run_eval:
+
     st.info("Running evaluation... this may take 10–20 seconds.")
 
     results = run_evaluation(top_k=top_k)
 
-    st.success("Evaluation complete!")
+    st.success("Evaluation Complete!")
 
-    st.write(f"**Accuracy:** {results['accuracy']}%")
-    st.write(f"**MRR:** {results['mrr']}")
-    st.write(f"**NDCG:** {results['ndcg']}")
+    # -----------------------------
+    # Summary Metrics
+    # -----------------------------
+    st.markdown("## 📈 Evaluation Summary")
+    st.metric("Accuracy", f"{results['accuracy']}%")
+    st.metric("MRR", results["mrr"])
+    st.metric("NDCG", results["ndcg"])
     st.write(f"**Total Queries:** {results['total_queries']}")
+    st.write(f"**Correct:** {results['correct_count']}  |  **Incorrect:** {results['incorrect_count']}")
 
     st.markdown("---")
-    st.write("### Incorrect Cases")
 
+    # -----------------------------
+    # Incorrect Results (highlight)
+    # -----------------------------
+    st.markdown("## ❌ Incorrect Queries (Important)")
     wrong = [d for d in results["details"] if not d["is_correct"]]
-    for item in wrong:
-        st.markdown(f"""
-        **❌ Query:** {item['query']}  
-        **Expected:** {item['expected']}  
-        **Retrieved:** {item['retrieved']}  
-        **Rank:** {item['rank']}
-        """)
+
+    if wrong:
+        for item in wrong:
+            st.markdown(f"""
+            <div style="padding:10px; background:#ffe5e5; border-radius:8px; margin-bottom:10px;">
+                <b>❌ Query:</b> {item['query']}<br>
+                <b>Expected:</b> {item['expected']}<br>
+                <b>Retrieved:</b> {item['retrieved']}<br>
+                <b>Rank:</b> {item['rank']}
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.success("🎉 No incorrect queries!")
+
+    st.markdown("---")
+
+    # -----------------------------
+    # Correct Results
+    # -----------------------------
+    st.markdown("## ✅ Correct Queries")
+    correct_items = [d for d in results["details"] if d["is_correct"]]
+
+    if correct_items:
+        for item in correct_items:
+            st.markdown(f"""
+            <div style="padding:10px; background:#e8ffe5; border-radius:8px; margin-bottom:10px;">
+                <b>✅ Query:</b> {item['query']}<br>
+                <b>Expected:</b> {item['expected']}<br>
+                <b>Top-K Retrieved:</b> {item['retrieved']}<br>
+                <b>Rank:</b> {item['rank']}
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.info("No correct queries.")
+
+    st.markdown("---")
+
+    # -----------------------------
+    # Full Table View
+    # -----------------------------
+    st.markdown("## 📃 Full Evaluation Table")
+
+    table_data = []
+    for item in results["details"]:
+        table_data.append({
+            "Query": item["query"],
+            "Expected Doc": item["expected"],
+            "Top-K Retrieved": ", ".join(item["retrieved"]),
+            "Correct?": "Yes" if item["is_correct"] else "No",
+            "Rank": item["rank"]
+        })
+
+    st.dataframe(table_data, use_container_width=True)
