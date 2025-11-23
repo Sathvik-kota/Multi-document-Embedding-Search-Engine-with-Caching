@@ -131,49 +131,49 @@ If not → FAISS index is rebuilt from cached embeddings.
 
 #  Folder Structure 
 ```
-├── 📁 src
-│ ├── 📁 doc_service
+├── src
+│ ├──  doc_service
 │ │ ├── init.py
 │ │ ├── app.py
 │ │ └── utils.py
 │ │
-│ ├── 📁 embed_service
+│ ├── embed_service
 │ │ ├── init.py
 │ │ ├── app.py
 │ │ ├── embedder.py
 │ │ └── cache_manager.py
 │ │
-│ ├── 📁 search_service
+│ ├──  search_service
 │ │ ├── init.py
 │ │ ├── app.py
 │ │ └── indexer.py
 │ │
-│ ├── 📁 explain_service
+│ ├──  explain_service
 │ │ ├── init.py
 │ │ ├── app.py
 │ │ └── explainer.py
 │ │
-│ ├── 📁 api_gateway
+│ ├──  api_gateway
 │ │ ├── init.py
 │ │ └── app.py
 │ │
-│ └── 📁 ui
+│ └──  ui
 │ └── streamlit_app.py
 │
-├── 📁 data
-│ └── 📁 docs
-│ └── (your .txt documents)
+├──  data
+│ └──  docs
+│ └── (150  .txt documents from 10 categories 30 each directly loaded into HF spaces)
 │
-├── 📁 cache
+├──  cache
 │ ├── embed_meta.json
 │ ├── embeddings.npy
 │ ├── faiss_index.bin
 │ └── faiss_meta.pkl
 │
-├── 📁 eval
+├──  eval
 │ ├── evaluate.py
-│ └── generated_queries.json
-│
+
+│──generated_queries.json
 ├── start.sh
 ├── Dockerfile
 ├── requirements.txt
