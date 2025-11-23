@@ -173,7 +173,7 @@ with st.sidebar:
     url_input = st.text_input("API Endpoint", API_GATEWAY_URL)
     st.divider()
     st.subheader(" Evaluation")
-    run_eval = st.button("Run Evaluation")
+    run_eval = st.button("Run Evaluation Script")
     st.divider()
     st.caption(" Powered by Sentence-Transformers")
 
@@ -302,16 +302,17 @@ if submit_btn and query.strip():
             st.code(full_text, language="text") # Using code block for better readability of raw text
 if run_eval:
 
-    st.info("Running evaluation... this may take 10–20 seconds.")
+    st.info("Running evaluation... this may take 10–20 seconds...")
 
-    results = run_evaluation(top_k=top_k)
+    results = run_evaluation(top_k=10)
 
     st.success("Evaluation Complete!")
 
     # -----------------------------
-    # Summary Metrics
+    # Summary Metrics (Horizontal)
     # -----------------------------
     st.markdown("## 📈 Evaluation Summary")
+
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.metric("Accuracy", f"{results['accuracy']}%")
@@ -320,21 +321,31 @@ if run_eval:
     with c3:
         st.metric("NDCG", results["ndcg"])
     with c4:
-        st.write(f"**Total Queries:** {results['total_queries']}")
-    st.write(f"**Correct:** {results['correct_count']}  |  **Incorrect:** {results['incorrect_count']}")
+        st.metric("Queries", results["total_queries"])
+
+    st.markdown(
+        f"**Correct:** {results['correct_count']} &nbsp;&nbsp;|&nbsp;&nbsp; "
+        f"**Incorrect:** {results['incorrect_count']}"
+    )
 
     st.markdown("---")
 
     # -----------------------------
-    # Incorrect Results (highlight)
+    # Incorrect Results
     # -----------------------------
     st.markdown("## ❌ Incorrect Queries (Important)")
+
     wrong = [d for d in results["details"] if not d["is_correct"]]
 
     if wrong:
         for item in wrong:
             st.markdown(f"""
-            <div style="padding:10px; background:#ffe5e5; border-radius:8px; margin-bottom:10px;">
+            <div style="
+                padding:14px;
+                background:#ffe5e5;
+                border-left:5px solid #ff4d4f;
+                border-radius:8px;
+                margin-bottom:10px;">
                 <b>❌ Query:</b> {item['query']}<br>
                 <b>Expected:</b> {item['expected']}<br>
                 <b>Retrieved:</b> {item['retrieved']}<br>
@@ -350,12 +361,18 @@ if run_eval:
     # Correct Results
     # -----------------------------
     st.markdown("## ✅ Correct Queries")
+
     correct_items = [d for d in results["details"] if d["is_correct"]]
 
     if correct_items:
         for item in correct_items:
             st.markdown(f"""
-            <div style="padding:10px; background:#e8ffe5; border-radius:8px; margin-bottom:10px;">
+            <div style="
+                padding:14px;
+                background:#e8ffe5;
+                border-left:5px solid #2ecc71;
+                border-radius:8px;
+                margin-bottom:10px;">
                 <b>✅ Query:</b> {item['query']}<br>
                 <b>Expected:</b> {item['expected']}<br>
                 <b>Top-K Retrieved:</b> {item['retrieved']}<br>
@@ -368,7 +385,7 @@ if run_eval:
     st.markdown("---")
 
     # -----------------------------
-    # Full Table View
+    # Full Table
     # -----------------------------
     st.markdown("## 📃 Full Evaluation Table")
 
@@ -377,7 +394,7 @@ if run_eval:
         table_data.append({
             "Query": item["query"],
             "Expected Doc": item["expected"],
-            "Top-K Retrieved": ", ".join(item["retrieved"]),
+            "Retrieved (Top-K)": ", ".join(item["retrieved"]),
             "Correct?": "Yes" if item["is_correct"] else "No",
             "Rank": item["rank"]
         })

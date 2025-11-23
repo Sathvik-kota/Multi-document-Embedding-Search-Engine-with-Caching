@@ -1,14 +1,13 @@
 import json
 import requests
 import numpy as np
-from sklearn.metrics import precision_score, recall_score
+
 
 API_URL = "http://localhost:8000/search"
 
-
-# -----------------------------
-# Utility: Compute MRR
-# -----------------------------
+# =====================================================
+# Utility: MRR
+# =====================================================
 def compute_mrr(all_ranks):
     if not all_ranks:
         return 0.0
@@ -16,23 +15,27 @@ def compute_mrr(all_ranks):
     return float(np.mean(rr))
 
 
-# -----------------------------
-# Utility: Compute NDCG@K
-# -----------------------------
+# =====================================================
+# Utility: NDCG@K
+# =====================================================
 def compute_ndcg(results, k):
+    """results = [1,0,0...] relevance for retrieved docs"""
     dcg = 0
     for rank, rel in enumerate(results[:k], start=1):
         if rel == 1:
             dcg += 1 / np.log2(rank + 1)
-    ideal = 1  # only 1 relevant doc
-    idcg = 1 / np.log2(1 + 1)
+
+    idcg = 1 / np.log2(1 + 1)  # ideal rank = 1
     return dcg / idcg if idcg != 0 else 0
 
 
-# -----------------------------
-# Main Evaluation
-# -----------------------------
-def run_evaluation(top_k=5, query_file="generated_queries.json"):
+# =====================================================
+# MAIN EVALUATION FUNCTION
+# =====================================================
+def run_evaluation(query_file="generated_queries.json", top_k=10):
+    """
+    top_k is FIXED = 10 for a realistic evaluation.
+    """
 
     with open(query_file) as f:
         queries = json.load(f)
@@ -43,55 +46,68 @@ def run_evaluation(top_k=5, query_file="generated_queries.json"):
     detailed = []
 
     for item in queries:
-        q = item["query"]
-        expected = item["doc_id"] + ".txt"  # expected filename
+        query = item["query"]
+        expected = item["doc_id"] + ".txt"
 
-        resp = requests.post(API_URL, json={"query": q, "top_k": top_k})
+        # ----------------------------
+        # CALL API
+        # ----------------------------
+        resp = requests.post(API_URL, json={"query": query, "top_k": top_k})
         if resp.status_code != 200:
             continue
 
-        data = resp.json().get("results", [])
-
-        # extract returned filenames
-        retrieved = [r["filename"] for r in data]
+        results = resp.json().get("results", [])
+        retrieved = [r["filename"] for r in results]
 
         # relevance array for NDCG
-        relevance = [1 if filename == expected else 0 for filename in retrieved]
+        relevance = [1 if fn == expected else 0 for fn in retrieved]
 
-        # 1) ACCURACY @ top-k
+        # ----------------------------
+        # ACCURACY
+        # ----------------------------
         hit = expected in retrieved
         correct.append(1 if hit else 0)
 
-        # 2) RANK for MRR
+        # ----------------------------
+        # RANK for MRR
+        # ----------------------------
         if hit:
-            rank_pos = retrieved.index(expected) + 1
-            ranks.append(rank_pos)
+            rank_position = retrieved.index(expected) + 1
+            ranks.append(rank_position)
+        else:
+            rank_position = None
 
-        # 3) NDCG
+        # ----------------------------
+        # NDCG
+        # ----------------------------
         ndcg_scores.append(compute_ndcg(relevance, top_k))
 
-        # 4) Record details
+        # ----------------------------
+        # Save detail
+        # ----------------------------
         detailed.append({
-            "query": q,
+            "query": query,
             "expected": expected,
             "retrieved": retrieved,
-            "is_correct": hit,
-            "rank": retrieved.index(expected) + 1 if hit else None
+            "rank": rank_position,
+            "is_correct": hit
         })
 
-    # -----------------------------
-    # METRICS
-    # -----------------------------
-    accuracy = np.mean(correct) * 100
-    mrr = compute_mrr(ranks)
-    mean_ndcg = float(np.mean(ndcg_scores))
+    # =====================================================
+    # FINAL METRICS
+    # =====================================================
+    accuracy = round(np.mean(correct) * 100, 2)
+    mrr = round(compute_mrr(ranks), 4)
+    mean_ndcg = round(float(np.mean(ndcg_scores)), 4)
 
-    return {
-        "accuracy": round(accuracy, 2),
-        "mrr": round(mrr, 4),
-        "ndcg": round(mean_ndcg, 4),
+    summary = {
+        "accuracy": accuracy,
+        "mrr": mrr,
+        "ndcg": mean_ndcg,
         "total_queries": len(queries),
         "correct_count": sum(correct),
         "incorrect_count": len(queries) - sum(correct),
         "details": detailed
     }
+
+    return summary
