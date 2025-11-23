@@ -176,7 +176,7 @@ with st.sidebar:
     st.subheader(" Evaluation")
     run_eval = st.button("Run Evaluation Script")
     st.divider()
-    st.caption(" Powered by Sentence-Transformers")
+    st.caption("Semantic Search · Smart Cache · FAISS Retrieval · Multi-Service Architecture · Relevance by MiniLM Embeddings. Reasoning by LLM.")
 
 API_GATEWAY_URL = url_input
 
