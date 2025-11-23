@@ -22,20 +22,23 @@ st.markdown("""
     
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
+        background-color: #ffffff; /* White Background */
+        color: #1f1f1f; /* Dark text for contrast */
     }
 
-    /* Input Field Styling - Gemini Style (Rounded & Clean) */
+    /* Input Field Styling - Gemini Light Style */
     .stTextInput > div > div > input {
         border-radius: 24px;
-        background-color: #1e1f20; /* Surface color */
-        border: 1px solid #444746;
-        color: #e3e3e3;
+        background-color: #f0f4f9; /* Light ash input */
+        border: 1px solid transparent;
+        color: #1f1f1f;
         padding: 12px 20px;
         font-size: 16px;
     }
     .stTextInput > div > div > input:focus {
-        border-color: #a8c7fa;
-        box-shadow: 0 0 0 1px #a8c7fa;
+        background-color: #ffffff;
+        border-color: #0b57d0; /* Gemini Blue */
+        box-shadow: 0 0 0 1px #0b57d0;
     }
 
     /* Button Styling */
@@ -57,22 +60,22 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(75, 144, 255, 0.3);
     }
 
-    /* Result Card - Gemini Container Look */
+    /* Result Card - Light Ash Background */
     .result-card {
-        background-color: #1e1f20;
+        background-color: #f0f4f9; /* Light Ash */
         border-radius: 16px;
         padding: 1.5rem;
         margin-bottom: 1rem;
-        border: 1px solid #444746;
+        border: none; /* Removed border for cleaner look on light mode */
         transition: transform 0.2s;
     }
     .result-card:hover {
-        border-color: #7cacf8;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 
     /* Typography in Cards */
     .card-title {
-        color: #e3e3e3;
+        color: #1f1f1f; /* Dark Title */
         font-size: 1.1rem;
         font-weight: 600;
         margin-bottom: 0.5rem;
@@ -82,7 +85,7 @@ st.markdown("""
     }
     
     .card-preview {
-        color: #c4c7c5;
+        color: #444746; /* Darker gray for readable preview */
         font-size: 0.95rem;
         line-height: 1.5;
         margin-bottom: 1rem;
@@ -90,8 +93,8 @@ st.markdown("""
 
     /* Pills & Badges */
     .score-badge {
-        background-color: #0f5223; /* Darker Green/Teal */
-        color: #c4eed0;
+        background-color: #c4eed0; /* Light Green bg */
+        color: #0f5223; /* Dark Green text */
         padding: 4px 12px;
         border-radius: 12px;
         font-size: 0.75rem;
@@ -100,8 +103,8 @@ st.markdown("""
     }
     
     .keyword-pill {
-        background-color: #004a77; /* Deep Blue */
-        color: #c2e7ff;
+        background-color: #c2e7ff; /* Light Blue bg */
+        color: #004a77; /* Dark Blue text */
         padding: 2px 10px;
         border-radius: 8px;
         font-size: 0.8rem;
@@ -121,9 +124,8 @@ st.markdown("""
     
     /* Custom Info Box */
     .stAlert {
-        background-color: #1e1f20;
-        border: 1px solid #444746;
-        color: #e3e3e3;
+        background-color: #f0f4f9;
+        color: #1f1f1f;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -147,7 +149,8 @@ col1, col2, col3 = st.columns([1, 6, 1])
 with col2:
     # Use HTML for the gradient text title
     st.markdown('<div style="text-align: center; margin-bottom: 10px;"><span class="gradient-text">Hello, Explorer</span></div>', unsafe_allow_html=True)
-    st.markdown('<div style="text-align: center; color: #8e918f; font-size: 1.2rem; margin-bottom: 30px;">How can I help you find documents today?</div>', unsafe_allow_html=True)
+    st.markdown('<div style="text-align: center; color: #444746; font-size: 1.2rem; margin-bottom: 30px;">How can I help you find documents today?</div>', unsafe_allow_html=True)
+
 
 # =======================
 # SEARCH BAR CENTERED
@@ -216,8 +219,8 @@ if submit_btn and query.strip():
         if keywords:
             keyword_html = "".join([f"<span class='keyword-pill'>{kw}</span>" for kw in keywords])
         
-        # Doc Icon (SVG)
-        doc_icon = """<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a8c7fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>"""
+        # Doc Icon (SVG) - Changed stroke to dark blue for visibility on light bg
+        doc_icon = """<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0b57d0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>"""
 
         # Main Card Render
         st.markdown(f"""
@@ -246,11 +249,11 @@ if submit_btn and query.strip():
             if sentences:
                 st.markdown("**Key Excerpts:**")
                 for s in sentences:
-                    # Using a subtle colored box for quotes
+                    # Updated quote box for light mode
                     st.markdown(f"""
-                    <div style="background: #25282a; border-left: 3px solid #7cacf8; padding: 10px; margin-bottom: 5px; border-radius: 0 8px 8px 0;">
-                        <span style="color: #e3e3e3;">"{s['sentence']}"</span> 
-                        <span style="color: #8e918f; font-size: 0.8em; margin-left: 10px;">(conf: {s['score']:.2f})</span>
+                    <div style="background: #ffffff; border-left: 3px solid #4285f4; padding: 10px; margin-bottom: 5px; border-radius: 0 8px 8px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <span style="color: #1f1f1f;">"{s['sentence']}"</span> 
+                        <span style="color: #5e5e5e; font-size: 0.8em; margin-left: 10px;">(conf: {s['score']:.2f})</span>
                     </div>
                     """, unsafe_allow_html=True)
 
