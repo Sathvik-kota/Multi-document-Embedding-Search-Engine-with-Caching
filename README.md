@@ -9,7 +9,7 @@ app_file: start.sh
 pinned: false
 ---
 
-# 🔍 Multi-Document Semantic Search Engine 
+#  Multi-Document Semantic Search Engine 
 A **production-inspired multi-microservice semantic search system** built over 20+ text documents.
 
 Designed with:
@@ -68,8 +68,7 @@ Metrics included:
 - **Correct vs Incorrect Fetches**
 
 ---
-# ⚡ How Caching Works (Mandatory Requirement ✓)
-
+# ⚡ How Caching Works 
 Caching happens inside **`embed_service/cache_manager.py`**.
 
 ### ✔ Prevents re-embedding unchanged files  
@@ -92,8 +91,7 @@ Caching benefits:
 
 ---
 
-# 🧠 How to Run Embedding Generation (Mandatory Requirement ✓)
-
+# 🧠 How to Run Embedding Generation 
 ### Embedding happens automatically during **initialization**:
 
 `POST /initialize` (handled by API Gateway):
@@ -112,14 +110,8 @@ POST /embed_document
 
 ---
 
-# 🚦 How to Start the API 
-Everything starts with **one command**:
 
-```bash
-bash start.sh
-
-
-## 🧬 Design Choices
+##  Design Choices
 
 ### 1️⃣ **Microservices instead of Monolithic**
 - Real-world ML systems separate **indexing, embedding, routing, and inference**.
