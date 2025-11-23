@@ -292,18 +292,37 @@ if submit_btn and query.strip():
             st.markdown("**📄 Full Document Content:**")
             st.code(full_text, language="text") # Using code block for better readability of raw text
 if run_eval:
-    st.info("Running evaluation... this may take 10–20 seconds.")
+    with st.spinner("Running evaluation... this may take 10–20 seconds..."):
+        eval_result = run_evaluation(top_k=1)
 
-    from evaluate import run_evaluation
-    
-    accuracy, results = run_evaluation()
+    st.success("Evaluation Complete! 🎉")
 
-    st.success(f"Evaluation Complete! Accuracy: {accuracy*100:.2f}%")
+    # ----- METRICS -----
+    total = eval_result["total"]
+    correct = eval_result["correct"]
+    acc = eval_result["accuracy"] * 100
+    prec = eval_result["precision_at_1"] * 100
+    rec = eval_result["recall_at_1"] * 100
+    f1 = eval_result["f1_at_1"] * 100
 
-    st.write("### Incorrect Results")
-    for r in results:
-        if not r["correct"]:
-            st.write(f"❌ Query: **{r['query']}**")
-            st.write(f"Expected: `{r['expected']}`")
-            st.write(f"Returned: `{r['returned']}`")
-            st.markdown("---")
+    st.markdown(f"""
+    **Total Queries:** {total}  
+    **Correct @1:** {correct}  
+    **Accuracy:** {acc:.2f}%  
+    **Precision@1:** {prec:.2f}%  
+    **Recall@1:** {rec:.2f}%  
+    **F1@1:** {f1:.2f}%
+    """)
+
+    # ----- FULL TABLE -----
+    df = pd.DataFrame(eval_result["records"])
+    st.markdown("### 🔍 All Query Results")
+    st.dataframe(df, use_container_width=True)
+
+    # ----- INCORRECT ONLY -----
+    wrong_df = df[~df["correct"]]
+    if not wrong_df.empty:
+        st.markdown("### ❌ Incorrect Results")
+        st.dataframe(wrong_df, use_container_width=True)
+    else:
+        st.markdown("### ✅ All queries retrieved the correct documents!")
