@@ -82,6 +82,8 @@ st.markdown("""
         border: none;
         padding: 0.5rem 1.5rem;
         transition: all 0.3s ease;
+        white-space: nowrap; /* Forces text to stay on one line */
+        min-width: 140px;   /* Ensures button is never too skinny */
     }
     
     /* Primary Search Button */
