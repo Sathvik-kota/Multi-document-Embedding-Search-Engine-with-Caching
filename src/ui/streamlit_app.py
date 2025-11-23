@@ -284,7 +284,7 @@ if submit_btn and query.strip():
 # ===============================
 # GEMINI 2.0 STYLE DETAILS PANEL
 # ===============================
-with st.expander(f"🔍 Details • Top Matches • LLM Explanation • Full Text ({filename})"):
+with st.expander(f"🔍 Details • Top Matches • LLM Explanation • Full Text {filename}"):
 
     # --- OVERLAP PANEL ---
     st.markdown("""
