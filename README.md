@@ -132,6 +132,10 @@ If not → FAISS index is rebuilt from cached embeddings.
 #  Folder Structure 
 ```
 ├── src
+├──  .github
+│ └── workflows
+│ └── hf-space-deploy.yml # GitHub Action → Deploy to Hugging Face Space
+
 │ ├──  doc_service
 │ │ ├── init.py
 │ │ ├── app.py
