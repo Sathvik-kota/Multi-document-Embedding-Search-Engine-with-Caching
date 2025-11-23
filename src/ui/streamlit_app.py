@@ -2,6 +2,12 @@ import streamlit as st
 import requests
 import json
 import html
+import sys
+import os
+
+ROOT_DIR = os.path.dirname(os.path.dirname(__file__))   # /content/.../src
+PROJECT_ROOT = os.path.dirname(ROOT_DIR)                # /content/.../
+sys.path.append(PROJECT_ROOT)
 
 API_GATEWAY_URL = "http://localhost:8000"
 
