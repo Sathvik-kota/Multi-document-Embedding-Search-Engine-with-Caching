@@ -279,7 +279,7 @@ if submit_btn and query.strip():
 if run_eval:
     st.info("Running evaluation... this may take 10–20 seconds.")
 
-    from src.evaluation.evaluate import run_evaluation
+    from src.eval.evaluate import run_evaluation
     
     accuracy, results = run_evaluation()
 
