@@ -150,10 +150,11 @@ with st.sidebar:
     st.markdown("### ⚙️ Settings")
     top_k = st.slider("Top-K Results", 1, 10, 5)
     url_input = st.text_input("API Endpoint", API_GATEWAY_URL)
-    st.subheader("⚡ Evaluation")
+    st.divider()
+    st.subheader(" Evaluation")
     run_eval = st.button("Run Evaluation")
     st.divider()
-    st.caption("✨ Powered by Sentence-Transformers")
+    st.caption(" Powered by Sentence-Transformers")
 
 API_GATEWAY_URL = url_input
 
