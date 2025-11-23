@@ -40,12 +40,6 @@ class Explainer:
         for idx in top_ids:
             results.append({"sentence": sentences[idx], "score": float(sims[idx])})
         return results
-
-    def explain(self, query: str, doc_text: str):
-        keywords, overlap_ratio = self.keyword_overlap(query, doc_text)
-        top_sentences = self.best_sentences(query, doc_text)
-        return {"keyword_overlap": keywords, "overlap_ratio": overlap_ratio, "top_sentences": top_sentences}
-
 class Explainer:
     def __init__(self):
         self.model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -75,3 +69,12 @@ Avoid repeating the sentences exactly; explain the reasoning.
         )
 
         return response.text.strip()
+
+
+    def explain(self, query: str, doc_text: str):
+        keywords, overlap_ratio = self.keyword_overlap(query, doc_text)
+        top_sentences = self.best_sentences(query, doc_text)
+        llm_summary = self.llm_explain(query, doc_text, top_sentences)
+        
+        return {"keyword_overlap": keywords, "overlap_ratio": overlap_ratio, "top_sentences": top_sentences, "llm_explanation": llm_summary}
+
