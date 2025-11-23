@@ -13,7 +13,8 @@ WORKDIR /app
 # -------------------------
 ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH="/app" \
-    PORT=7860
+    PORT=7860 \
+    DATA_FOLDER="/app/docs"
 
 # -------------------------
 # Install system dependencies
@@ -33,6 +34,14 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy entire project
 # -------------------------
 COPY . .
+
+# -------------------------
+# Debug: list /app/docs & warn about big files
+# -------------------------
+RUN echo ">>> /app/docs contents (if any) <<<" && \
+    if [ -d "/app/docs" ]; then ls -la /app/docs || true; else echo "/app/docs not found"; fi && \
+    echo ">>> Checking for files larger than 100MB <<<" && \
+    if [ -d "/app" ]; then find /app -type f -size +100M -exec ls -lh {} \; || true; else echo "no /app dir"; fi
 
 # -------------------------
 # Make start.sh executable

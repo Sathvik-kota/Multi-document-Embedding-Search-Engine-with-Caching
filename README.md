@@ -9,17 +9,6 @@ app_file: start.sh
 pinned: false
 ---
 
-
----
-title: Multi-Document Semantic Search Engine
-emoji: 🔍
-colorFrom: blue
-colorTo: purple
-sdk: docker
-app_file: start.sh
-pinned: false
----
-
 # 🔍 Multi-Document Semantic Search Engine (Gemini-Style UI)
 
 A **microservice-based** semantic search engine over 20 Newsgroups-style text documents with:
