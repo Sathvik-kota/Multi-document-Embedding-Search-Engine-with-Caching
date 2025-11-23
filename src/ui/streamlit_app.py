@@ -314,13 +314,13 @@ if run_eval:
     st.markdown("## 📈 Evaluation Summary")
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-    st.metric("Accuracy", f"{results['accuracy']}%")
+        st.metric("Accuracy", f"{results['accuracy']}%")
     with c2:
-    st.metric("MRR", results["mrr"])
+        st.metric("MRR", results["mrr"])
     with c3:
-    st.metric("NDCG", results["ndcg"])
+        st.metric("NDCG", results["ndcg"])
     with c4:
-    st.write(f"**Total Queries:** {results['total_queries']}")
+        st.write(f"**Total Queries:** {results['total_queries']}")
     st.write(f"**Correct:** {results['correct_count']}  |  **Incorrect:** {results['incorrect_count']}")
 
     st.markdown("---")
