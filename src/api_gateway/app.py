@@ -9,7 +9,8 @@ DOC_URL = "http://localhost:9001"
 EMBED_URL = "http://localhost:9002"
 SEARCH_URL = "http://localhost:9003"
 EXPLAIN_URL = "http://localhost:9004"
-DATA_FOLDER = "/app/docs"
+import os
+DATA_FOLDER = os.environ.get("DATA_FOLDER", "/app/docs")
 
 class SearchQuery(BaseModel):
     query: str
