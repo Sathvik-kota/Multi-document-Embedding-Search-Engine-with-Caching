@@ -33,7 +33,30 @@ st.set_page_config(
 )
 
 # =======================
-# GEMINI UI STYLING
+# Disable Browser Autocomplete
+# =======================
+st.markdown("""
+<style>
+input[type=text] {
+    autocomplete: off !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = window.parent.document.querySelectorAll('input[type="text"]');
+    inputs.forEach(inp => {
+        inp.setAttribute('autocomplete', 'off');
+        inp.setAttribute('autocorrect', 'off');
+        inp.setAttribute('autocapitalize', 'off');
+        inp.setAttribute('spellcheck', 'false');
+    });
+});
+</script>
+""", unsafe_allow_html=True)
+
+# =======================
+# UI STYLING
 # =======================
 st.markdown("""
 <style>
@@ -181,7 +204,7 @@ with st.sidebar:
 API_GATEWAY_URL = url_input
 
 # =======================
-# MAIN HEADER (Gemini Style)
+# MAIN HEADER 
 # =======================
 col1, col2, col3 = st.columns([1, 6, 1])
 with col2:
@@ -313,7 +336,7 @@ if run_eval:
     st.success("Evaluation Complete!")
 
     # -----------------------------
-    # Summary Metrics (Horizontal)
+    # Summary Metrics 
     # -----------------------------
     st.markdown("##  Evaluation Summary")
 
