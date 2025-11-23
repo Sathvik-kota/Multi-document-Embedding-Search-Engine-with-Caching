@@ -2,6 +2,7 @@
 import re
 import numpy as np
 from sentence_transformers import SentenceTransformer
+from google import genai
 
 STOPWORDS = set("""
 a an the and or but if while with without for on in into by to from of is are was were be been being as it this that these those
@@ -44,3 +45,33 @@ class Explainer:
         keywords, overlap_ratio = self.keyword_overlap(query, doc_text)
         top_sentences = self.best_sentences(query, doc_text)
         return {"keyword_overlap": keywords, "overlap_ratio": overlap_ratio, "top_sentences": top_sentences}
+
+class Explainer:
+    def __init__(self):
+        self.model = SentenceTransformer("all-MiniLM-L6-v2")
+        self.client = genai.Client(api_key="YOUR_KEY")   # <--- NEW
+
+    def llm_explain(self, query, doc_text, top_sentences):
+        prompt = f"""
+You are an AI assistant that explains *why* a document matches a user query.
+
+QUERY:
+{query}
+
+DOCUMENT (excerpt):
+{doc_text[:500]}
+
+MOST RELEVANT SENTENCES:
+{top_sentences}
+
+Explain in 2–3 natural sentences *why this document matches the query*.
+Avoid repeating the sentences exactly; explain the reasoning.
+"""
+
+        response = self.client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config={"temperature": 0.4}
+        )
+
+        return response.text.strip()
