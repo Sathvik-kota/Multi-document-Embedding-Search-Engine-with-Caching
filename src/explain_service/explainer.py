@@ -14,7 +14,7 @@ class Explainer:
     def __init__(self):
         self.model = SentenceTransformer("all-MiniLM-L6-v2")
         # LLM Client
-        self.client = genai.Client(api_key="AIzaSyBXEkZ7DF_QxuKwyxsXQ6FZ_qLk4k7W1n0")
+        self.client = genai.Client(api_key="AIzaSyAUsBbYOc9v_ejKCYLlDDiNuwYh20gq01c")
 
     # ---------------------------
     # TOKENIZER
