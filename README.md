@@ -119,9 +119,6 @@ The system stores embeddings **and** the FAISS vector index on disk:
 
 On startup, the `search_service` automatically runs:
 
-```python
-indexer.try_load()
-
 ---
 
 ##  Design Choices
