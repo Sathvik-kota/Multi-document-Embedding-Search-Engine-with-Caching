@@ -150,6 +150,8 @@ with st.sidebar:
     st.markdown("### ⚙️ Settings")
     top_k = st.slider("Top-K Results", 1, 10, 5)
     url_input = st.text_input("API Endpoint", API_GATEWAY_URL)
+    st.subheader("⚡ Evaluation")
+    run_eval = st.button("Run Evaluation")
     st.divider()
     st.caption("✨ Powered by Sentence-Transformers")
 
@@ -273,3 +275,19 @@ if submit_btn and query.strip():
             st.markdown("---")
             st.markdown("**📄 Full Document Content:**")
             st.code(full_text, language="text") # Using code block for better readability of raw text
+if run_eval:
+    st.info("Running evaluation... this may take 10–20 seconds.")
+
+    from src.evaluation.evaluate import run_evaluation
+    
+    accuracy, results = run_evaluation()
+
+    st.success(f"Evaluation Complete! Accuracy: {accuracy*100:.2f}%")
+
+    st.write("### Incorrect Results")
+    for r in results:
+        if not r["correct"]:
+            st.write(f"❌ Query: **{r['query']}**")
+            st.write(f"Expected: `{r['expected']}`")
+            st.write(f"Returned: `{r['returned']}`")
+            st.markdown("---")
