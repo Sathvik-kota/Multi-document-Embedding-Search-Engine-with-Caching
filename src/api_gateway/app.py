@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import requests
-
+import time
 app = FastAPI(title="API Gateway")
 
 DOC_URL = "http://localhost:9001"
@@ -44,7 +44,8 @@ def initialize():
 @app.post("/search")
 def search(req: SearchQuery):
     # embed query
-    q = requests.post(f"{EMBED_URL}/embed_document", json={"filename": "query", "text": req.query, "hash": "query"}, timeout=10)
+    unique_id = str(time.time())
+    q = requests.post(f"{EMBED_URL}/embed_document", json={"filename": f"query_{unique_id}", "text": req.query, "hash": unique_id},   timeout=10)
     if q.status_code != 200:
         return {"error": "embed_query_failed", "detail": q.text}
     q_emb = q.json()["embedding"]
