@@ -1,22 +1,27 @@
 #!/bin/bash
-echo " Starting multi-service document search system..."
 
-python3 src/doc_service/app.py --port 9001 &
+echo "🚀 Starting multi-service document search system..."
 
-# Start EMBEDDING service (port 9002)
-python3 src/embed_service/app.py --port 9002 &
+# ---------------------------------------------
+# Ensure Python can resolve src/ as a package
+# ---------------------------------------------
+export PYTHONPATH="/app"
 
-# Start SEARCH service (port 9003)
-python3 src/search_service/app.py --port 9003 &
-
-# Start EXPLAIN service (port 9004)
-python3 src/explain_service/app.py --port 9004 &
-
-# Start API GATEWAY (port 8000)
-python3 src/api_gateway/app.py --port 8000 &
+# ---------------------------------------------
+# Start all microservices as MODULES (required!)
+# ---------------------------------------------
+python3 -m src.doc_service.app --port 9001 &
+python3 -m src.embed_service.app --port 9002 &
+python3 -m src.search_service.app --port 9003 &
+python3 -m src.explain_service.app --port 9004 &
+python3 -m src.api_gateway.app --port 8000 &
 
 sleep 5
-echo "All microservices started!"
+echo "✅ All microservices started!"
 
-# Start Streamlit app (port 7860 for HF Spaces)
-streamlit run src/ui/streamlit_app.py --server.port 7860 --server.address 0.0.0.0
+# ---------------------------------------------
+# Start Streamlit (HF Spaces runs on port 7860)
+# ---------------------------------------------
+streamlit run src/ui/streamlit_app.py \
+    --server.port 7860 \
+    --server.address 0.0.0.0
