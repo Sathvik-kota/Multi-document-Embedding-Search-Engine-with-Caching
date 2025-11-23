@@ -76,7 +76,7 @@ A built-in evaluation workflow providing:
 - **nDCG@K**
 - Correct vs Incorrect queries  
 - Per-query detailed table  
-- Ideal for assignments, research, and experiments  
+
 
 ---
 
@@ -129,8 +129,7 @@ If not → FAISS index is rebuilt from cached embeddings.
 
 ---
 
-#  Folder Structure (MANDATORY SECTION)
-
+#  Folder Structure 
 src/
 doc_service/
 app.py
@@ -249,20 +248,17 @@ L2 distance is used instead of cosine because:
 ### 4️⃣ **Local Embedding Cache**
 - Reduces startup time from **~5 seconds → <1 second**
 - Prevents **re-embedding identical documents**
-- Stores:
-  - `embed_meta.json` → filename → hash → index
-  - `embeddings.npy` → matrix of stored embeddings
-- Saves compute + makes repeated searches much faster
-
+-Allows FAISS persistence to work smoothly
+- Speeds up startup & indexing
 ---
 ### 4️⃣FAISS Persistence (Warm Start Optimization)
 - Eliminates the need to rebuild index on each startup
-- Warm-loads instantly using try_load()
+- Warm-loads instantly at startup
 - Ideal for Spaces & Docker environments
-- A vector-database
+- A lightweight vector-database
 ---
 ### 5️⃣ **LLM-Driven Explainability**
-- Generates **human-friendly reasoning**
+- Generates **human-friendly reasoning**. Makes search results more interpretable and intelligent.
 - Explains **why a document matched your query**
 - Combines:
   - Top semantic-matching sentences  
