@@ -281,7 +281,7 @@ if submit_btn and query.strip():
         """, unsafe_allow_html=True)
 
         # Details Expander (Standard Streamlit but styled via global CSS)
-        with st.expander(f" View Details (Semantic overlap ratio + Top Sentences + LLM Explanation + Full Text) — {filename}"):
+        with st.expander(f"View Details & Full Text for {filename}"):
             
             overlap_ratio = explanation.get("overlap_ratio", 0)
             sentences = explanation.get("top_sentences", [])
