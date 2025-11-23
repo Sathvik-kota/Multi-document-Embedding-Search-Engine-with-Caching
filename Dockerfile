@@ -1,6 +1,7 @@
 # -------------------------
 # Base image
 # -------------------------
+ENV PYTHONPATH="/home/user/app"
 FROM python:3.11-slim
 
 # Allow root user (HF Spaces supports this for Docker)

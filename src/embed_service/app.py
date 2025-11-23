@@ -1,8 +1,9 @@
 # src/embed_service/app.py
 from fastapi import FastAPI
 from pydantic import BaseModel
-from .embedder import Embedder
-from .cache_manager import CacheManager
+from src.embed_service.embedder import Embedder
+from src.embed_service.cache_manager import CacheManager
+
 import numpy as np
 
 app = FastAPI(title="Embed Service")

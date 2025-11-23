@@ -1,7 +1,8 @@
 # src/explain_service/app.py
 from fastapi import FastAPI
 from pydantic import BaseModel
-from .explainer import Explainer
+from src.explain_service.explainer import Explainer
+
 
 app = FastAPI(title="Explain Service")
 explainer = Explainer()

@@ -1,7 +1,7 @@
 # src/doc_service/app.py
 from fastapi import FastAPI
 from pydantic import BaseModel
-from .utils import preprocess_documents, load_original_text
+from src.doc_service.utils import preprocess_documents, load_original_text
 
 app = FastAPI(title="Document Service")
 
