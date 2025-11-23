@@ -15,7 +15,7 @@ A **production-inspired multi-microservice semantic search system** built over 2
 Designed with:
 - **Sentence-Transformers** (`all-MiniLM-L6-v2`)
 - **Local Embedding Cache**
-- **FAISS Vector Search**
+- **FAISS vector search + persistent storage**
 - **LLM-Driven Explanations** (Gemini 2.5 Flash)
 - **Google-Gemini-Style Streamlit UI**
 - **Microservice Architecture**
@@ -107,9 +107,22 @@ You can call:
 POST /embed_batch
 POST /embed_document
 
+---
+### 🧩 FAISS Persistence (Warm Start Optimization)
+
+The system stores embeddings **and** the FAISS vector index on disk:
+
+- `cache/embeddings.npy` → all stored embeddings  
+- `cache/embed_meta.json` → filename → hash → embedding index  
+- `faiss_index.bin` → saved FAISS index  
+- `faiss_meta.pkl` → mapping of FAISS row → document filename  
+
+On startup, the `search_service` automatically runs:
+
+```python
+indexer.try_load()
 
 ---
-
 
 ##  Design Choices
 
