@@ -130,34 +130,54 @@ If not → FAISS index is rebuilt from cached embeddings.
 ---
 
 #  Folder Structure 
-src/
-doc_service/
-app.py
-utils.py
-embed_service/
-app.py
-embedder.py
-cache_manager.py
-search_service/
-app.py
-indexer.py
-explain_service/
-app.py
-explainer.py
-api_gateway/
-app.py
-ui/
-streamlit_app.py
-data/
-docs/
-<all .txt documents>
-cache/
-faiss_index.bin
-faiss_meta.pkl
-requirements.txt
-Dockerfile
-start.sh
-README.md
+├── 📁 src
+│ ├── 📁 doc_service
+│ │ ├── init.py
+│ │ ├── app.py
+│ │ └── utils.py
+│ │
+│ ├── 📁 embed_service
+│ │ ├── init.py
+│ │ ├── app.py
+│ │ ├── embedder.py
+│ │ └── cache_manager.py
+│ │
+│ ├── 📁 search_service
+│ │ ├── init.py
+│ │ ├── app.py
+│ │ └── indexer.py
+│ │
+│ ├── 📁 explain_service
+│ │ ├── init.py
+│ │ ├── app.py
+│ │ └── explainer.py
+│ │
+│ ├── 📁 api_gateway
+│ │ ├── init.py
+│ │ └── app.py
+│ │
+│ └── 📁 ui
+│ └── streamlit_app.py
+│
+├── 📁 data
+│ └── 📁 docs
+│ └── (your .txt documents)
+│
+├── 📁 cache
+│ ├── embed_meta.json
+│ ├── embeddings.npy
+│ ├── faiss_index.bin
+│ └── faiss_meta.pkl
+│
+├── 📁 eval
+│ ├── evaluate.py
+│ └── generated_queries.json
+│
+├── start.sh
+├── Dockerfile
+├── requirements.txt
+├── .gitignore
+└── README.md
 
 
 ---
