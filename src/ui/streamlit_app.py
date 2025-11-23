@@ -29,43 +29,144 @@ API_GATEWAY_URL = "http://localhost:8000"
 st.set_page_config(
     page_title="Doc-Fetch",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded", # Changed from "collapsed" to "expanded"
 )
-
-# =======================
-# Disable Autocomplete
-# =======================
-st.markdown("""
-<style>
-input[type=text] {
-    autocomplete: off !important;
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const inputs = window.parent.document.querySelectorAll('input[type="text"]');
-    inputs.forEach(inp => {
-        inp.setAttribute('autocomplete', 'off');
-        inp.setAttribute('autocorrect', 'off');
-        inp.setAttribute('autocapitalize', 'off');
-        inp.setAttribute('spellcheck', 'false');
-    });
-});
-</script>
-""", unsafe_allow_html=True)
 
 # =======================
 # GEMINI UI STYLING
 # =======================
 st.markdown("""
 <style>
-/* Your entire CSS EXACTLY as earlier (not reprinting for brevity) */
+    /* Global Font & Background */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+        background-color: #ffffff; /* White Background */
+        color: #1f1f1f; /* Dark text for contrast */
+    }
+
+    /* --- INPUT FIELD FIX --- */
+    /* 1. Remove the default Streamlit border/background on the container */
+    .stTextInput > div[data-baseweb="input"] {
+        background-color: transparent !important;
+        border: none !important;
+        border-radius: 24px !important; 
+        box-shadow: none !important; 
+    }
+    
+    /* 2. Style the actual input element */
+    .stTextInput input {
+        border-radius: 24px !important;
+        background-color: #f0f4f9 !important; /* Light ash input */
+        border: 1px solid transparent !important;
+        color: #1f1f1f !important;
+        padding: 12px 20px !important;
+        font-size: 16px !important;
+        transition: all 0.2s ease;
+    }
+    
+    /* 3. Focus state - clean blue border, no default red overlay */
+    .stTextInput input:focus {
+        background-color: #ffffff !important;
+        border-color: #0b57d0 !important; /* Gemini Blue */
+        box-shadow: 0 0 0 2px rgba(11, 87, 208, 0.2) !important;
+        outline: none !important;
+    }
+
+    /* Button Styling */
+    .stButton > button {
+        border-radius: 20px;
+        font-weight: 500;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        transition: all 0.3s ease;
+        white-space: nowrap; /* Forces text to stay on one line */
+        min-width: 140px;   /* Ensures button is never too skinny */
+    }
+    
+    /* Primary Search Button */
+    button[kind="primary"] {
+        background: linear-gradient(90deg, #4b90ff, #ff5546);
+        color: white;
+    }
+    button[kind="primary"]:hover {
+        opacity: 0.9;
+        box-shadow: 0 4px 12px rgba(75, 144, 255, 0.3);
+    }
+
+    /* Result Card - Light Ash Background */
+    .result-card {
+        background-color: #f0f4f9; /* Light Ash */
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: none; /* Removed border for cleaner look on light mode */
+        transition: transform 0.2s;
+    }
+    .result-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    /* Typography in Cards */
+    .card-title {
+        color: #1f1f1f; /* Dark Title */
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .card-preview {
+        color: #444746; /* Darker gray for readable preview */
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+    }
+
+    /* Pills & Badges */
+    .score-badge {
+        background-color: #c4eed0; /* Light Green bg */
+        color: #0f5223; /* Dark Green text */
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+    
+    .keyword-pill {
+        background-color: #c2e7ff; /* Light Blue bg */
+        color: #004a77; /* Dark Blue text */
+        padding: 2px 10px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        margin-right: 6px;
+        display: inline-block;
+        margin-bottom: 4px;
+    }
+
+    /* Gradient Text for Header */
+    .gradient-text {
+        background: linear-gradient(to right, #4285f4, #9b72cb, #d96570);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
+        font-size: 3rem;
+    }
+    
+    /* Custom Info Box */
+    .stAlert {
+        background-color: #f0f4f9;
+        color: #1f1f1f;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # =======================
-# SIDEBAR
+# SIDEBAR (Settings)
 # =======================
 with st.sidebar:
     st.markdown("### ⚙️ Settings")
@@ -75,58 +176,46 @@ with st.sidebar:
     st.subheader(" Evaluation")
     run_eval = st.button("Run Evaluation Script")
     st.divider()
-    st.caption("Semantic Search · Smart Cache · FAISS Retrieval · Multi-Service Architecture · Relevance by MiniLM Embeddings · Reasoning by LLM.")
+    st.caption("Semantic Search · Smart Cache · FAISS Retrieval · Multi-Service Architecture · Relevance by MiniLM Embeddings. Reasoning by LLM.")
 
 API_GATEWAY_URL = url_input
 
 # =======================
-# MAIN HEADER
+# MAIN HEADER (Gemini Style)
 # =======================
 col1, col2, col3 = st.columns([1, 6, 1])
 with col2:
-    st.markdown('<div style="text-align:center;margin-bottom:10px;"><span class="gradient-text">Hello, Explorer</span></div>', unsafe_allow_html=True)
-    st.markdown('<div style="text-align:center;color:#444746;font-size:1.2rem;margin-bottom:30px;">How can I help you find documents today?</div>', unsafe_allow_html=True)
+    # Use HTML for the gradient text title
+    st.markdown('<div style="text-align: center; margin-bottom: 10px;"><span class="gradient-text">Hello, Explorer</span></div>', unsafe_allow_html=True)
+    st.markdown('<div style="text-align: center; color: #444746; font-size: 1.2rem; margin-bottom: 30px;">How can I help you find documents today?</div>', unsafe_allow_html=True)
 
 
 # =======================
-# SEARCH INPUT (ENTER TRIGGER)
+# SEARCH BAR CENTERED
 # =======================
-
-# SESSION STATE to detect Enter key automatically
-if "trigger_enter" not in st.session_state:
-    st.session_state["trigger_enter"] = False
-
-def enter_pressed():
-    st.session_state["trigger_enter"] = True
-
-sc1, sc2, sc3 = st.columns([1,4,1])
+# Centering the search bar using columns
+sc1, sc2, sc3 = st.columns([1, 4, 1])
 
 with sc2:
     query = st.text_input(
-        "Search Query",
+        "Search Query", # Label hidden by CSS/Config if needed, or set visibility hidden
         placeholder="Ask a question about your documents...",
-        label_visibility="collapsed",
-        key="search_box",
-        on_change=enter_pressed  # <-- ENTER activates search
+        label_visibility="collapsed"
     )
-
+    
     # Buttons row
-    b1, b2, b3 = st.columns([2,1,2])
+    b1, b2, b3 = st.columns([2, 1, 2])
     with b2:
         submit_btn = st.button("Sparkle Search", type="primary", use_container_width=True)
-
-# TRUE if button clicked OR Enter pressed
-trigger_search = submit_btn or st.session_state["trigger_enter"]
 
 # =======================
 # SEARCH HANDLER
 # =======================
-if trigger_search and query.strip():
+if submit_btn and query.strip():
 
-    # Reset enter state
-    st.session_state["trigger_enter"] = False
-
+    # Gemini-style spinner
     with st.spinner("✨ Analyzing semantics..."):
+
         response = requests.post(
             f"{API_GATEWAY_URL}/search",
             json={"query": query, "top_k": top_k}
@@ -146,10 +235,13 @@ if trigger_search and query.strip():
         st.info("No relevant documents found for that query.")
         st.stop()
 
-    # Search Results
+    # Results Header
     st.markdown("### ✨ Search Results")
     st.markdown("---")
 
+    # =======================
+    # DISPLAY RESULTS (Card Style)
+    # =======================
     for item in data["results"]:
         filename = item["filename"]
         score = item["score"]
@@ -159,69 +251,156 @@ if trigger_search and query.strip():
 
         safe_preview = html.escape(preview)
         
+        # Prepare keyword HTML
         keywords = explanation.get("keyword_overlap", [])
-        keyword_html = "".join([f"<span class='keyword-pill'>{kw}</span>" for kw in keywords])
+        keyword_html = ""
+        if keywords:
+            keyword_html = "".join([f"<span class='keyword-pill'>{kw}</span>" for kw in keywords])
+        
+        # Doc Icon (SVG) - Changed stroke to dark blue for visibility on light bg
+        doc_icon = """<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0b57d0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>"""
 
-        doc_icon = """<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0b57d0" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>"""
-
+        # Main Card Render
         st.markdown(f"""
         <div class="result-card">
-            <div style="display:flex;justify-content:space-between;align-items:start;">
-                <div class="card-title">{doc_icon} {filename}</div>
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <div class="card-title">
+                    {doc_icon} {filename}
+                </div>
                 <div class="score-badge">match: {score:.4f}</div>
             </div>
             <p class="card-preview">{safe_preview}...</p>
-            <div style="margin-top:10px;">
-                <div style="font-weight:600;color:#1f1f1f;margin-bottom:6px;">Keyword Overlap:</div>
+            <div style="margin-top: 10px;">
+                <div style="font-weight:600; color:#1f1f1f; margin-bottom:6px;">
+                   Keyword Overlap:
+                </div>
                 {keyword_html}
             </div>
         </div>
         """, unsafe_allow_html=True)
 
+        # Details Expander (Standard Streamlit but styled via global CSS)
         with st.expander(f"View Document Insights: Semantic Overlap, Top Sentences, LLM Reasoning & Full Text for {filename}"):
+            
             overlap_ratio = explanation.get("overlap_ratio", 0)
             sentences = explanation.get("top_sentences", [])
             
             st.caption(f"Semantic Overlap Ratio: {overlap_ratio:.3f}")
-
+            
             if sentences:
                 st.markdown("**Key Excerpts:**")
                 for s in sentences:
+                    # Updated quote box for light mode
                     st.markdown(f"""
-                    <div style="background:#fff;border-left:3px solid #4285f4;padding:10px;margin-bottom:5px;border-radius:0 8px 8px 0;">
-                        "{s['sentence']}" <span style="color:#5e5e5e;font-size:0.8em;">(conf: {s['score']:.2f})</span>
+                    <div style="background: #ffffff; border-left: 3px solid #4285f4; padding: 10px; margin-bottom: 5px; border-radius: 0 8px 8px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <span style="color: #1f1f1f;">"{s['sentence']}"</span> 
+                        <span style="color: #5e5e5e; font-size: 0.8em; margin-left: 10px;">(conf: {s['score']:.2f})</span>
                     </div>
                     """, unsafe_allow_html=True)
-
             llm_expl = explanation.get("llm_explanation")
             if llm_expl:
-                st.markdown("**Why this document?**")
-                st.write(llm_expl)
-
+                 st.markdown("**Why this document?**")
+                 st.write(llm_expl)
             st.markdown("---")
             st.markdown("**📄 Full Document Content:**")
-            st.code(full_text, language="text")
-
-
-# =======================
-# EVALUATION MODULE
-# =======================
+            st.code(full_text, language="text") # Using code block for better readability of raw text
 if run_eval:
 
     st.info("Running evaluation... this may take 10–20 seconds...")
+
     results = run_evaluation(top_k=10)
+
     st.success("Evaluation Complete!")
 
-    st.markdown("## Evaluation Summary")
+    # -----------------------------
+    # Summary Metrics (Horizontal)
+    # -----------------------------
+    st.markdown("##  Evaluation Summary")
 
     c1, c2, c3, c4 = st.columns(4)
-    with c1: st.metric("Accuracy", f"{results['accuracy']}%")
-    with c2: st.metric("MRR", results["mrr"])
-    with c3: st.metric("NDCG", results["ndcg"])
-    with c4: st.metric("Queries", results["total_queries"])
+    with c1:
+        st.metric("Accuracy", f"{results['accuracy']}%")
+    with c2:
+        st.metric("MRR", results["mrr"])
+    with c3:
+        st.metric("NDCG", results["ndcg"])
+    with c4:
+        st.metric("Queries", results["total_queries"])
 
     st.markdown(
-        f"**Correct:** {results['correct_count']} | **Incorrect:** {results['incorrect_count']}"
+        f"**Correct:** {results['correct_count']} &nbsp;&nbsp;|&nbsp;&nbsp; "
+        f"**Incorrect:** {results['incorrect_count']}"
     )
 
     st.markdown("---")
+
+    # -----------------------------
+    # Incorrect Results
+    # -----------------------------
+    st.markdown("##  Incorrect Fetches ")
+
+    wrong = [d for d in results["details"] if not d["is_correct"]]
+
+    if wrong:
+        for item in wrong:
+            st.markdown(f"""
+            <div style="
+                padding:14px;
+                background:#ffe5e5;
+                border-left:5px solid #ff4d4f;
+                border-radius:8px;
+                margin-bottom:10px;">
+                <b> Query:</b> {item['query']}<br>
+                <b>Expected:</b> {item['expected']}<br>
+                <b>Retrieved:</b> {item['retrieved']}<br>
+                <b>Rank:</b> {item['rank']}
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.success(" No incorrect queries!")
+
+    st.markdown("---")
+
+    # -----------------------------
+    # Correct Results
+    # -----------------------------
+    st.markdown("##  Correct Fetches")
+
+    correct_items = [d for d in results["details"] if d["is_correct"]]
+
+    if correct_items:
+        for item in correct_items:
+            st.markdown(f"""
+            <div style="
+                padding:14px;
+                background:#e8ffe5;
+                border-left:5px solid #2ecc71;
+                border-radius:8px;
+                margin-bottom:10px;">
+                <b> Query:</b> {item['query']}<br>
+                <b>Expected:</b> {item['expected']}<br>
+                <b>Top-K Retrieved:</b> {item['retrieved']}<br>
+                <b>Rank:</b> {item['rank']}
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.info("No correct queries.")
+
+    st.markdown("---")
+
+    # -----------------------------
+    # Full Table
+    # -----------------------------
+    st.markdown("##  Full Evaluation Table")
+
+    table_data = []
+    for item in results["details"]:
+        table_data.append({
+            "Query": item["query"],
+            "Expected Doc": item["expected"],
+            "Retrieved (Top-10)": ", ".join(item["retrieved"]),
+            "Correct?": "Yes" if item["is_correct"] else "No",
+            "Rank": item["rank"]
+        })
+
+    st.dataframe(table_data, use_container_width=True)
