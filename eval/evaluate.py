@@ -1,75 +1,97 @@
-# eval/evaluate.py
 import json
 import requests
+import numpy as np
+from sklearn.metrics import precision_score, recall_score
 
-API_GATEWAY_URL = "http://localhost:8000"
+API_URL = "http://localhost:8000/search"
 
-def run_evaluation(top_k: int = 1):
-    # 1) Load generated queries
-    with open("generated_queries.json", "r") as f:
-        items = json.load(f)
 
-    total = len(items)
-    correct = 0
-    records = []  # store ALL results
+# -----------------------------
+# Utility: Compute MRR
+# -----------------------------
+def compute_mrr(all_ranks):
+    if not all_ranks:
+        return 0.0
+    rr = [1.0 / r for r in all_ranks]
+    return float(np.mean(rr))
 
-    for item in items:
-        doc_id = item["doc_id"]          # e.g. "doc_001"
-        query = item["query"]
-        expected_fname = f"{doc_id}.txt" # "doc_001.txt"
 
-        try:
-            resp = requests.post(
-                f"{API_GATEWAY_URL}/search",
-                json={"query": query, "top_k": top_k},
-                timeout=20
-            )
-        except Exception as e:
-            print(f"❌ Request failed for query: {query} | {e}")
-            continue
+# -----------------------------
+# Utility: Compute NDCG@K
+# -----------------------------
+def compute_ndcg(results, k):
+    dcg = 0
+    for rank, rel in enumerate(results[:k], start=1):
+        if rel == 1:
+            dcg += 1 / np.log2(rank + 1)
+    ideal = 1  # only 1 relevant doc
+    idcg = 1 / np.log2(1 + 1)
+    return dcg / idcg if idcg != 0 else 0
 
+
+# -----------------------------
+# Main Evaluation
+# -----------------------------
+def run_evaluation(top_k=5, query_file="generated_queries.json"):
+
+    with open(query_file) as f:
+        queries = json.load(f)
+
+    correct = []
+    ranks = []
+    ndcg_scores = []
+    detailed = []
+
+    for item in queries:
+        q = item["query"]
+        expected = item["doc_id"] + ".txt"  # expected filename
+
+        resp = requests.post(API_URL, json={"query": q, "top_k": top_k})
         if resp.status_code != 200:
-            print(f"❌ API error ({resp.status_code}): {resp.text}")
             continue
 
-        data = resp.json()
-        if "results" not in data or len(data["results"]) == 0:
-            returned_fname = None
-            score = None
-        else:
-            top_hit = data["results"][0]
-            returned_fname = top_hit["filename"]
-            score = top_hit.get("score", None)
+        data = resp.json().get("results", [])
 
-        is_correct = (returned_fname == expected_fname)
-        if is_correct:
-            correct += 1
+        # extract returned filenames
+        retrieved = [r["filename"] for r in data]
 
-        records.append({
-            "query": query,
-            "expected": expected_fname,
-            "returned": returned_fname,
-            "score": score,
-            "correct": is_correct
+        # relevance array for NDCG
+        relevance = [1 if filename == expected else 0 for filename in retrieved]
+
+        # 1) ACCURACY @ top-k
+        hit = expected in retrieved
+        correct.append(1 if hit else 0)
+
+        # 2) RANK for MRR
+        if hit:
+            rank_pos = retrieved.index(expected) + 1
+            ranks.append(rank_pos)
+
+        # 3) NDCG
+        ndcg_scores.append(compute_ndcg(relevance, top_k))
+
+        # 4) Record details
+        detailed.append({
+            "query": q,
+            "expected": expected,
+            "retrieved": retrieved,
+            "is_correct": hit,
+            "rank": retrieved.index(expected) + 1 if hit else None
         })
 
-    # ---- Metrics ----
-    accuracy = correct / total if total > 0 else 0.0
+    # -----------------------------
+    # METRICS
+    # -----------------------------
+    accuracy = np.mean(correct) * 100
+    mrr = compute_mrr(ranks)
+    mean_ndcg = float(np.mean(ndcg_scores))
 
-    # With 1 prediction per query, precision@1 = recall@1 = accuracy
-    precision_at_1 = accuracy
-    recall_at_1 = accuracy
-    f1_at_1 = (2 * precision_at_1 * recall_at_1 / (precision_at_1 + recall_at_1)
-               if (precision_at_1 + recall_at_1) > 0 else 0.0)
-
-    summary = {
-        "total": total,
-        "correct": correct,
-        "accuracy": accuracy,
-        "precision_at_1": precision_at_1,
-        "recall_at_1": recall_at_1,
-        "f1_at_1": f1_at_1,
-        "records": records,
+    return {
+        "accuracy": round(accuracy, 2),
+        "mrr": round(mrr, 4),
+        "ndcg": round(mean_ndcg, 4),
+        "total_queries": len(queries),
+        "correct_count": sum(correct),
+        "incorrect_count": len(queries) - sum(correct),
+        "details": detailed
     }
-
-    return summary

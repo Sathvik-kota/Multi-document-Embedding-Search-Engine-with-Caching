@@ -292,37 +292,25 @@ if submit_btn and query.strip():
             st.markdown("**📄 Full Document Content:**")
             st.code(full_text, language="text") # Using code block for better readability of raw text
 if run_eval:
-    with st.spinner("Running evaluation... this may take 10–20 seconds..."):
-        eval_result = run_evaluation()
+    st.info("Running evaluation... this may take 10–20 seconds.")
 
-    st.success("Evaluation Complete! 🎉")
+    results = run_evaluation(top_k=top_k)
 
-    # ----- METRICS -----
-    total = eval_result["total"]
-    correct = eval_result["correct"]
-    acc = eval_result["accuracy"] * 100
-    prec = eval_result["precision_at_1"] * 100
-    rec = eval_result["recall_at_1"] * 100
-    f1 = eval_result["f1_at_1"] * 100
+    st.success("Evaluation complete!")
 
-    st.markdown(f"""
-    **Total Queries:** {total}  
-    **Correct @1:** {correct}  
-    **Accuracy:** {acc:.2f}%  
-    **Precision@1:** {prec:.2f}%  
-    **Recall@1:** {rec:.2f}%  
-    **F1@1:** {f1:.2f}%
-    """)
+    st.write(f"**Accuracy:** {results['accuracy']}%")
+    st.write(f"**MRR:** {results['mrr']}")
+    st.write(f"**NDCG:** {results['ndcg']}")
+    st.write(f"**Total Queries:** {results['total_queries']}")
 
-    # ----- FULL TABLE -----
-    df = pd.DataFrame(eval_result["records"])
-    st.markdown("### 🔍 All Query Results")
-    st.dataframe(df, use_container_width=True)
+    st.markdown("---")
+    st.write("### Incorrect Cases")
 
-    # ----- INCORRECT ONLY -----
-    wrong_df = df[~df["correct"]]
-    if not wrong_df.empty:
-        st.markdown("### ❌ Incorrect Results")
-        st.dataframe(wrong_df, use_container_width=True)
-    else:
-        st.markdown("### ✅ All queries retrieved the correct documents!")
+    wrong = [d for d in results["details"] if not d["is_correct"]]
+    for item in wrong:
+        st.markdown(f"""
+        **❌ Query:** {item['query']}  
+        **Expected:** {item['expected']}  
+        **Retrieved:** {item['retrieved']}  
+        **Rank:** {item['rank']}
+        """)
