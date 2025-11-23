@@ -198,6 +198,7 @@ This starts:
 
 7860 → Streamlit UI
 
+---
 
 ##  Architecture Overview
 
@@ -218,6 +219,7 @@ This starts:
 
 
 
+---
 
 ##  Design Choices
 
