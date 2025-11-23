@@ -1,0 +1,62 @@
+[
+    {
+        "doc_id": "doc_001",
+        "query": "What is a Bricklin car?"
+    },
+    {
+        "doc_id": "doc_001",
+        "query": "What are some unique characteristics of the Bricklin?"
+    },
+    {
+        "doc_id": "doc_001",
+        "query": "What era is the Bricklin from?"
+    },
+    {
+        "doc_id": "doc_002",
+        "query": "What is the main topic of this post?"
+    },
+    {
+        "doc_id": "doc_002",
+        "query": "What specific details are requested from people sharing their experiences?"
+    },
+    {
+        "doc_id": "doc_002",
+        "query": "When will the collected information be summarized?"
+    },
+    {
+        "doc_id": "doc_003",
+        "query": "When are new Powerbook models expected?"
+    },
+    {
+        "doc_id": "doc_003",
+        "query": "Are there any rumors about Powerbook price drops?"
+    },
+    {
+        "doc_id": "doc_003",
+        "query": "What's the general impression of the Powerbook 180 display?"
+    },
+    {
+        "doc_id": "doc_004",
+        "query": "What is Weitek's contact information?"
+    },
+    {
+        "doc_id": "doc_004",
+        "query": "How can I get details about Weitek's chips?"
+    },
+    {
+        "doc_id": "doc_004",
+        "query": "Where can I find Weitek's address or phone number?"
+    },
+    {
+        "doc_id": "doc_005",
+        "query": "What causes \"expected errors\" in the warning system?"
+    },
+    {
+        "doc_id": "doc_005",
+        "query": "How are known bugs in the warning system handled?"
+    },
+    {
+        "doc_id": "doc_005",
+        "query": "Why are certain warning system errors not fixed?"
+    }
+]
