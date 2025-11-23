@@ -236,7 +236,7 @@ if submit_btn and query.strip():
         st.stop()
 
     # Results Header
-    st.markdown("### ✨ Search Results")
+    st.markdown("###  Search Results")
     st.markdown("---")
 
     # =======================
