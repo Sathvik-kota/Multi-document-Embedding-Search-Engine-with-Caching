@@ -311,7 +311,7 @@ if run_eval:
     # -----------------------------
     # Summary Metrics (Horizontal)
     # -----------------------------
-    st.markdown("## 📈 Evaluation Summary")
+    st.markdown("##  Evaluation Summary")
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
@@ -333,7 +333,7 @@ if run_eval:
     # -----------------------------
     # Incorrect Results
     # -----------------------------
-    st.markdown("## ❌ Incorrect Queries (Important)")
+    st.markdown("##  Incorrect Fetches ")
 
     wrong = [d for d in results["details"] if not d["is_correct"]]
 
@@ -346,21 +346,21 @@ if run_eval:
                 border-left:5px solid #ff4d4f;
                 border-radius:8px;
                 margin-bottom:10px;">
-                <b>❌ Query:</b> {item['query']}<br>
+                <b> Query:</b> {item['query']}<br>
                 <b>Expected:</b> {item['expected']}<br>
                 <b>Retrieved:</b> {item['retrieved']}<br>
                 <b>Rank:</b> {item['rank']}
             </div>
             """, unsafe_allow_html=True)
     else:
-        st.success("🎉 No incorrect queries!")
+        st.success(" No incorrect queries!")
 
     st.markdown("---")
 
     # -----------------------------
     # Correct Results
     # -----------------------------
-    st.markdown("## ✅ Correct Queries")
+    st.markdown("##  Correct Fetches")
 
     correct_items = [d for d in results["details"] if d["is_correct"]]
 
@@ -373,7 +373,7 @@ if run_eval:
                 border-left:5px solid #2ecc71;
                 border-radius:8px;
                 margin-bottom:10px;">
-                <b>✅ Query:</b> {item['query']}<br>
+                <b> Query:</b> {item['query']}<br>
                 <b>Expected:</b> {item['expected']}<br>
                 <b>Top-K Retrieved:</b> {item['retrieved']}<br>
                 <b>Rank:</b> {item['rank']}
@@ -387,14 +387,14 @@ if run_eval:
     # -----------------------------
     # Full Table
     # -----------------------------
-    st.markdown("## 📃 Full Evaluation Table")
+    st.markdown("##  Full Evaluation Table")
 
     table_data = []
     for item in results["details"]:
         table_data.append({
             "Query": item["query"],
             "Expected Doc": item["expected"],
-            "Retrieved (Top-K)": ", ".join(item["retrieved"]),
+            "Retrieved (Top-10)": ", ".join(item["retrieved"]),
             "Correct?": "Yes" if item["is_correct"] else "No",
             "Rank": item["rank"]
         })
