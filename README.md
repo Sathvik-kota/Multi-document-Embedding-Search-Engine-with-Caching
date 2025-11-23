@@ -9,16 +9,19 @@ app_file: start.sh
 pinned: false
 ---
 
-# 🔍 Multi-Document Semantic Search Engine (Gemini-Style UI)
+# 🔍 Multi-Document Semantic Search Engine 
+A **production-inspired multi-microservice semantic search system** built over 20+ text documents.
 
-A **microservice-based** semantic search engine over 20 Newsgroups-style text documents with:
+Designed with:
+- **Sentence-Transformers** (`all-MiniLM-L6-v2`)
+- **Local Embedding Cache**
+- **FAISS Vector Search**
+- **LLM-Driven Explanations** (Gemini 2.5 Flash)
+- **Google-Gemini-Style Streamlit UI**
+- **Microservice Architecture**
+- **Full Evaluation Suite**: Accuracy · MRR · nDCG
 
-- Sentence-Transformers embeddings (`all-MiniLM-L6-v2`)
-- **Local caching** (no repeated embedding computation)
-- **FAISS** vector index (L2 on normalized embeddings)
-- **LLM-powered explanations** (Gemini 2.5 Flash, optional)
-- **Streamlit UI** styled like **Google Gemini**
-- Full **evaluation suite** (Accuracy, MRR, nDCG, per-query breakdown)
+Showcasing real-world architecture and ML system design.
 
 ---
 
@@ -27,33 +30,96 @@ A **microservice-based** semantic search engine over 20 Newsgroups-style text do
 ### 🔹 Core Search
 
 - Embedding-based semantic search over `.txt` docs
-- FAISS `IndexFlatL2` on normalized vectors (≈ cosine similarity)
+- FAISS `IndexFlatL2` on normalized vectors 
 - Top-K ranking + score display
 - Keyword overlap, overlap ratio, top matching sentences
 
-### 🔹 Microservice Architecture (Your Big Idea 💡)
+### 🔹 Microservice Architecture 
 
 Each logical component runs as a **separate FastAPI microservice**:
 
-- `doc_service` – loads & preprocesses documents
-- `embed_service` – generates + caches embeddings
-- `search_service` – maintains FAISS index & vector search
-- `explain_service` – gives explanations (keywords + Gemini LLM)
-- `api_gateway` – orchestrates everything behind a clean API
-- `streamlit_ui` – user-facing Gemini-style search app
+| Service | Responsibility |
+|--------|----------------|
+| **doc_service** | Load + clean + hash documents |
+| **embed_service** | MiniLM embeddings + caching |
+| **search_service** | FAISS index build + vector search |
+| **explain_service** | Keyword overlap + top sentences + LLM reasoning |
+| **api_gateway** | Full pipeline orchestration |
+| **streamlit_ui** | Gemini-styled user interface |
 
-This mimics **real-world production** architectures and is a strong talking point in interviews.
+This mirrors real production designs (scalable, modular, interchangeable components).
 
 ### 🔹 Explanations
 
 For each search result you get:
 
-- ✅ Why this document was matched (LLM explanation)
-- ✅ Which keywords overlapped (simple heuristic)
-- ✅ Overlap ratio (0–1)
-- ✅ Top matching sentences (semantic similarity)
+- Why this document was matched (LLM explanation)
+- Which keywords overlapped (simple heuristic)
+- Overlap ratio (0–1)
+- Top matching sentences (semantic similarity)
 
 ---
+### 🔹 **Evaluation Suite**
+Metrics included:
+- **Accuracy**
+- **MRR (Mean Reciprocal Rank)**
+- **nDCG@K**
+- **Per-query table**
+- **Correct vs Incorrect Fetches**
+
+---
+# ⚡ How Caching Works (Mandatory Requirement ✓)
+
+Caching happens inside **`embed_service/cache_manager.py`**.
+
+### ✔ Prevents re-embedding unchanged files  
+Each document is identified by: filename + MD5(clean_text)
+
+If `(filename, hash)` already exists:
+- the embedding is **loaded instantly**
+- avoids recomputing MiniLM embeddings
+- makes repeated runs extremely fast
+
+### Cache contents:
+- `cache/embed_meta.json` → maps filename → `{"hash": "...", "index": int}`
+- `cache/embeddings.npy` → stacked embedding matrix
+
+Caching benefits:
+- Faster startup  
+- Faster user queries  
+- Less compute usage  
+- More production-ready  
+
+---
+
+# 🧠 How to Run Embedding Generation (Mandatory Requirement ✓)
+
+### Embedding happens automatically during **initialization**:
+
+`POST /initialize` (handled by API Gateway):
+
+1. Load all docs from `data/docs`
+2. Send batch clean texts → **embed_service**
+3. Cache manager stores new embeddings
+4. FAISS index built in **search_service**
+
+### Manual Embedding (Optional)
+
+You can call:
+POST /embed_batch
+POST /embed_document
+
+
+---
+
+# 🚦 How to Start the API 
+Everything starts with **one command**:
+
+```bash
+bash start.sh
+
+
+
 
 ## 🏗️ Architecture Overview
 
@@ -72,38 +138,3 @@ For each search result you get:
    - top matching sentences
    - optional LLM explanation
 
-### ASCII Diagram (Microservices Highlighted)
-
-```text
-                 ┌──────────────────────────┐
-                 │      Streamlit UI        │
-                 │  (Gemini-style frontend) │
-                 └────────────┬─────────────┘
-                              │ HTTP /search
-                              ▼
-                 ┌──────────────────────────┐
-                 │      API Gateway         │  ← central orchestrator
-                 └───────┬────────┬────────┘
-                         │        │
-                Load docs│        │Explanations
-                         │        ▼
-          ┌──────────────▼───┐   ┌─────────────────────┐
-          │   DOC SERVICE    │   │  EXPLAIN SERVICE    │
-          │ - read .txt      │   │ - keywords/overlap  │
-          │ - clean + hash   │   │ - top sentences     │
-          └───────────▲──────┘   │ - optional Gemini   │
-                      │          └─────────▲───────────┘
-                      │ Embeddings         │
-          ┌───────────┴───────────┐        │
-          │   EMBED SERVICE       │        │
-          │ - MiniLM embeddings   │        │
-          │ - caching to disk     │        │
-          └───────────▲───────────┘        │
-                      │ vectors            │
-          ┌───────────┴───────────┐        │
-          │   SEARCH SERVICE      │        │
-          │ - FAISS index (L2)    │        │
-          │ - Top-K search        │        │
-          └───────────────────────┘        │
-                                           │
-          ───────── All behind API GATEWAY + Streamlit UI ─────────
