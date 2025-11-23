@@ -68,8 +68,8 @@ Metrics included:
 - **Correct vs Incorrect Fetches**
 
 ---
-# ⚡ How Caching Works 
-Caching happens inside **`embed_service/cache_manager.py`**.
+#  How Caching Works 
+Caching happens inside **`embed_service/cache_manager.py`**.We never embed the same document twice.
 
 ### ✔ Prevents re-embedding unchanged files  
 Each document is identified by: filename + MD5(clean_text)
@@ -91,7 +91,7 @@ Caching benefits:
 
 ---
 
-# 🧠 How to Run Embedding Generation 
+#  How to Run Embedding Generation 
 ### Embedding happens automatically during **initialization**:
 
 `POST /initialize` (handled by API Gateway):
@@ -108,7 +108,7 @@ POST /embed_batch
 POST /embed_document
 
 ---
-### 🧩 FAISS Persistence (Warm Start Optimization)
+###  FAISS Persistence (Warm Start Optimization)
 
 The system stores embeddings **and** the FAISS vector index on disk:
 
@@ -131,19 +131,19 @@ On startup, the `search_service` automatically runs:
 ---
 
 ### 2️⃣ **MiniLM Embeddings**
-- ⚡ **Fast on CPU** (optimized for lightweight inference)
-- 🎯 **High semantic quality** for short & long text
-- 🪶 **Small model** → ideal for search engines, mobile, Spaces deployments
+-  **Fast on CPU** (optimized for lightweight inference)
+- **High semantic quality** for short & long text
+- **Small model** → ideal for search engines, mobile, Spaces deployments
 
 ---
 
 ### 3️⃣ **FAISS L2 on Normalized Embeddings**
 L2 distance is used instead of cosine because:
 
-- 🚀 **FAISS FlatL2 is faster** and more optimized
-- ✨ When vectors are normalized:  
+- **FAISS FlatL2 is faster** and more optimized
+- When vectors are normalized:  
   `L2 Distance ≡ Cosine Distance` (mathematically equivalent)
-- 🧩 Avoids the overhead of cosine kernels
+-  Avoids the overhead of cosine kernels
 
 ---
 
@@ -156,7 +156,12 @@ L2 distance is used instead of cosine because:
 - Saves compute + makes repeated searches much faster
 
 ---
-
+### 4️⃣FAISS Persistence (Warm Start Optimization)
+- Eliminates the need to rebuild index on each startup
+- Warm-loads instantly using try_load()
+- Ideal for Spaces & Docker environments
+- A vector-database
+---
 ### 5️⃣ **LLM-Driven Explainability**
 - Generates **human-friendly reasoning**
 - Explains **why a document matched your query**
@@ -168,13 +173,13 @@ L2 distance is used instead of cosine because:
 ---
 
 ### 6️⃣ **Streamlit for Fast UI**
-- ⚡ Instant reload during development  
-- 🎨 Clean layout 
-- 🧱 Easy to extend (evaluation panel, metrics, expanders)
+-  Instant reload during development  
+-  Clean layout 
+- Easy to extend (evaluation panel, metrics, expanders)
 
 
 
-## 🏗️ Architecture Overview
+##  Architecture Overview
 
 ### High-level Flow
 
