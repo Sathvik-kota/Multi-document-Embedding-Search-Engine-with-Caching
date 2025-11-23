@@ -307,18 +307,28 @@ if run_eval:
     results = run_evaluation(top_k=top_k)
 
     st.success("Evaluation Complete!")
+# -----------------------------
+# Summary Metrics (Horizontal)
+# -----------------------------
+st.markdown("## 📈 Evaluation Summary")
 
-    # -----------------------------
-    # Summary Metrics
-    # -----------------------------
-    st.markdown("## 📈 Evaluation Summary")
+c1, c2, c3, c4 = st.columns(4)
+
+with c1:
     st.metric("Accuracy", f"{results['accuracy']}%")
-    st.metric("MRR", results["mrr"])
-    st.metric("NDCG", results["ndcg"])
-    st.write(f"**Total Queries:** {results['total_queries']}")
-    st.write(f"**Correct:** {results['correct_count']}  |  **Incorrect:** {results['incorrect_count']}")
 
-    st.markdown("---")
+with c2:
+    st.metric("MRR", results["mrr"])
+
+with c3:
+    st.metric("NDCG", results["ndcg"])
+
+with c4:
+    st.metric("Total Queries", results["total_queries"])
+
+# Line below the metrics
+st.write(f"**Correct:** {results['correct_count']}  |  **Incorrect:** {results['incorrect_count']}")
+st.markdown("---")
 
     # -----------------------------
     # Incorrect Results (highlight)
