@@ -9,7 +9,7 @@ DOC_URL = "http://localhost:9001"
 EMBED_URL = "http://localhost:9002"
 SEARCH_URL = "http://localhost:9003"
 EXPLAIN_URL = "http://localhost:9004"
-DATA_FOLDER = "data/docs"
+DATA_FOLDER = "/data/docs"
 
 class SearchQuery(BaseModel):
     query: str
