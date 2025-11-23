@@ -1,8 +1,10 @@
 #!/bin/bash
 echo " Starting multi-service document search system..."
 
+python3 src/doc_service/app.py --port 9001 &
+
 # Start EMBEDDING service (port 9002)
-python3 src/embedding_service/app.py --port 9002 &
+python3 src/embed_service/app.py --port 9002 &
 
 # Start SEARCH service (port 9003)
 python3 src/search_service/app.py --port 9003 &
