@@ -1,5 +1,5 @@
 ---
-title: Document Search Engine (Gemini Style)
+title: Document Search Engine 
 emoji: 📄
 colorFrom: blue
 colorTo: purple
