@@ -293,7 +293,7 @@ if submit_btn and query.strip():
             st.code(full_text, language="text") # Using code block for better readability of raw text
 if run_eval:
     with st.spinner("Running evaluation... this may take 10–20 seconds..."):
-        eval_result = run_evaluation(top_k=1)
+        eval_result = run_evaluation()
 
     st.success("Evaluation Complete! 🎉")
 
