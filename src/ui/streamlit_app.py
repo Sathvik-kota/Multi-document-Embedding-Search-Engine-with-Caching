@@ -214,7 +214,7 @@ with sc2:
 if submit_btn and query.strip():
 
     # Gemini-style spinner
-    with st.spinner("✨ Analyzing semantics..."):
+    with st.spinner(" Analyzing semantics..."):
 
         response = requests.post(
             f"{API_GATEWAY_URL}/search",
