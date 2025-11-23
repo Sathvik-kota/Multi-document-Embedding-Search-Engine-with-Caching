@@ -116,7 +116,7 @@ POST /embed_document
 ### 1️⃣ **Microservices instead of Monolithic**
 - Real-world ML systems separate **indexing, embedding, routing, and inference**.
 - Enables **independent scaling**, easier debugging, and service-level isolation.
-- Perfect architecture to demonstrate **system design skills** in interviews.
+
 
 ---
 
@@ -159,7 +159,7 @@ L2 distance is used instead of cosine because:
 
 ### 6️⃣ **Streamlit for Fast UI**
 - ⚡ Instant reload during development  
-- 🎨 Clean layout for Gemini-style cards  
+- 🎨 Clean layout 
 - 🧱 Easy to extend (evaluation panel, metrics, expanders)
 
 
