@@ -5,9 +5,18 @@ import html
 import sys
 import os
 
-ROOT_DIR = os.path.dirname(os.path.dirname(__file__))   # /content/.../src
-PROJECT_ROOT = os.path.dirname(ROOT_DIR)                # /content/.../
+# ------------------------------------------
+# Add project root + eval folder to path
+# ------------------------------------------
+CURRENT_DIR = os.path.dirname(__file__)
+SRC_DIR = os.path.dirname(CURRENT_DIR)
+PROJECT_ROOT = os.path.dirname(SRC_DIR)
+
 sys.path.append(PROJECT_ROOT)
+sys.path.append(os.path.join(PROJECT_ROOT, "eval"))
+
+# Now import evaluation
+from evaluate import run_evaluation
 
 API_GATEWAY_URL = "http://localhost:8000"
 
@@ -285,7 +294,7 @@ if submit_btn and query.strip():
 if run_eval:
     st.info("Running evaluation... this may take 10–20 seconds.")
 
-    from src.eval.evaluate import run_evaluation
+    from evaluate import run_evaluation
     
     accuracy, results = run_evaluation()
 
