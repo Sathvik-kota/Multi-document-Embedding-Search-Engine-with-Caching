@@ -197,7 +197,7 @@ This starts:
 8000 → api_gateway
 
 7860 → Streamlit UI
-
+```
 ---
 
 ##  Architecture Overview
