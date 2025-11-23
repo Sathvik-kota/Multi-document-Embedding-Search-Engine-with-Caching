@@ -253,13 +253,13 @@ L2 distance is used instead of cosine because:
 -Allows FAISS persistence to work smoothly
 - Speeds up startup & indexing
 ---
-### 4️⃣FAISS Persistence (Warm Start Optimization)
+### 5️⃣FAISS Persistence (Warm Start Optimization)
 - Eliminates the need to rebuild index on each startup
 - Warm-loads instantly at startup
 - Ideal for Spaces & Docker environments
 - A lightweight vector-database
 ---
-### 5️⃣ **LLM-Driven Explainability**
+### 6️⃣ **LLM-Driven Explainability**
 - Generates **human-friendly reasoning**. Makes search results more interpretable and intelligent.
 - Explains **why a document matched your query**
 - Combines:
@@ -269,7 +269,7 @@ L2 distance is used instead of cosine because:
 
 ---
 
-### 6️⃣ **Streamlit for Fast UI**
+### 7️⃣ **Streamlit for Fast UI**
 -  Instant reload during development  
 -  Clean layout 
 - Easy to extend (evaluation panel, metrics, expanders)
