@@ -234,7 +234,7 @@ with sc2:
 # =======================
 # SEARCH HANDLER
 # =======================
-if submit_btn and query.strip():
+if (submit_btn or query) and query.strip():
 
     # Gemini-style spinner
     with st.spinner(" Analyzing semantics..."):
